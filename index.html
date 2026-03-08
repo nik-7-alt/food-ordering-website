@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Street Cafe | Order Online</title>
+    <style>
+        :root { --primary: #e67e22; --dark: #2c3e50; --light: #f4f7f6; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--light); padding-bottom: 80px; }
+        
+        header { background: white; padding: 15px 20px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        header h1 { margin: 0; color: var(--dark); font-size: 1.5rem; }
+        
+        .menu-tabs { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; background: white; padding: 15px 10px; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .tab-btn { padding: 8px 14px; border: 1px solid #ddd; background: #fafafa; border-radius: 20px; font-weight: bold; cursor: pointer; white-space: nowrap; font-size: 0.85rem; color: #555; transition: 0.2s; }
+        .tab-btn:hover { background: #eee; }
+        .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        .menu-section { padding: 20px; max-width: 1200px; margin: auto; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
+        
+        .item-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
+        .item-img { width: 100%; height: 130px; object-fit: cover; border-bottom: 2px solid var(--primary); }
+        
+        .item-info { padding: 12px; display: flex; flex-direction: column; flex-grow: 1; }
+        .item-info h4 { margin: 0 0 5px; font-size: 0.95rem; color: var(--dark); line-height: 1.3; }
+        .price { color: var(--primary); font-weight: bold; font-size: 1.1rem; margin-bottom: 10px; }
+        
+        .add-btn { background: white; color: var(--primary); border: 2px solid var(--primary); padding: 8px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-top: auto; transition: 0.2s; }
+        .add-btn:hover { background: var(--primary); color: white; }
+
+        .cart-bar { position: fixed; bottom: 0; width: 100%; background: var(--primary); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; box-sizing: border-box; font-size: 1.1rem; box-shadow: 0 -4px 15px rgba(0,0,0,0.2); }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>The Street Cafe Menu</h1>
+</header>
+
+<div class="menu-tabs" id="tabContainer"></div>
+<div class="menu-section" id="menuDisplay"></div>
+
+<div class="cart-bar" onclick="sendOrder()">
+    <span id="cart-count">🛒 0 Items</span>
+    <span id="cart-total">Total: ₹0</span>
+    <strong>Place Order ➔</strong>
+</div>
+
+<script>
+    const imgDosa = "https://images.unsplash.com/photo-1589301760014-d929f39ce9de?w=400&q=80";
+    const imgIdli = "https://images.unsplash.com/photo-1589301773975-6548a31362e3?w=400&q=80";
+    const imgUpma = "https://images.unsplash.com/photo-1626074353765-517a681e40be?w=400&q=80"; 
+    const imgLunch = "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?w=400&q=80"; 
+    const imgDinner = "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400&q=80"; 
+    const imgChinese = "https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=400&q=80";
+    const imgPizza = "https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400&q=80";
+    const imgPasta = "https://images.unsplash.com/photo-1621996311214-e5c9429712ee?w=400&q=80";
+    const imgChaat = "https://images.unsplash.com/photo-1601050690597-df0568f70950?w=400&q=80";
+    const imgSnacks = "https://images.unsplash.com/photo-1562967914-608f82629710?w=400&q=80";
+    const imgJuice = "https://images.unsplash.com/photo-1600271886742-f049cd451b02?w=400&q=80";
+    const imgSmoothie = "https://images.unsplash.com/photo-1553530666-ba11a7ddbb55?w=400&q=80";
+    const imgSoup = "https://images.unsplash.com/photo-1547592180-85f173990554?w=400&q=80";
+    const imgDessert = "https://images.unsplash.com/photo-1563805042-7684c8e9e5cb?w=400&q=80";
+    const imgMocktail = "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=400&q=80";
+
+    const menuData = {
+        "Breakfast": [
+            {n: "Plain Dosa", p: 30, img: imgDosa}, 
+            {n: "Masala Dosa", p: 50, img: imgDosa}, 
+            {n: "Cheese Dosa", p: 70, img: imgDosa},
+            {n: "Onion Dosa", p: 40, img: imgDosa}, 
+            {n: "Rava Dosa", p: 50, img: imgDosa}, 
+            {n: "Mysore Dosa", p: 60, img: imgDosa},
+            {n: "Paper Dosa", p: 40, img: imgDosa}, 
+            {n: "Neer Dosa", p: 40, img: imgDosa}, 
+            {n: "Adai Dosa", p: 60, img: imgDosa},
+            {n: "Ghee Roast Dosa", p: 80, img: imgDosa}, 
+            {n: "Plain Idli", p: 10, img: imgIdli}, 
+            {n: "Rava Idli", p: 30, img: imgIdli},
+            {n: "Mini Idli", p: 15, img: imgIdli}, 
+            {n: "Stuffed Idli", p: 40, img: imgIdli}, 
+            {n: "Sambar Idli", p: 40, img: imgIdli},
+            {n: "Rice Idli", p: 10, img: imgIdli}, 
+            {n: "Millet Idli", p: 30, img: imgIdli}, 
+            {n: "Pongal", p: 40, img: imgIdli},
+            {n: "Plain Uttapam", p: 50, img: imgDosa}, 
+            {n: "Vegetable Uttapam", p: 60, img: imgDosa}
+        ],
+        "Upma Varieties": [
+            {n: "Classic Upma", p: 30, img: imgUpma}, 
+            {n: "Rava Upma", p: 30, img: imgUpma}, 
+            {n: "Vegetable Upma", p: 40, img: imgUpma},
+            {n: "Oats Upma", p: 40, img: imgUpma}, 
+            {n: "Millet Upma", p: 40, img: imgUpma}, 
+            {n: "Quinoa Upma", p: 50, img: imgUpma},
+            {n: "Tomato Upma", p: 40, img: imgUpma}, 
+            {n: "Onion Upma", p: 40, img: imgUpma}, 
+            {n: "Spicy Upma", p: 40, img: imgUpma},
+            {n: "Upma with Nuts", p: 50, img: imgUpma}
+        ],
+        "Lunch": [
+            {n: "Veg Thali", p: 120, img: imgLunch}, 
+            {n: "Special Veg Thali", p: 150, img: imgLunch}, 
+            {n: "Dal Rice", p: 80, img: imgLunch},
+            {n: "Rajma Rice", p: 100, img: imgLunch}, 
+            {n: "Chole Rice", p: 100, img: imgLunch}, 
+            {n: "Curd Rice", p: 70, img: imgLunch},
+            {n: "Lemon Rice", p: 70, img: imgLunch}, 
+            {n: "Veg Biryani", p: 120, img: imgLunch}, 
+            {n: "Paneer Biryani", p: 160, img: imgLunch},
+            {n: "Chicken Biryani", p: 180, img: imgLunch}, 
+            {n: "Egg Biryani", p: 150, img: imgLunch}, 
+            {n: "Hyderabadi Biryani", p: 200, img: imgLunch},
+            {n: "Vegetable Pulao", p: 100, img: imgLunch}, 
+            {n: "Jeera Rice", p: 90, img: imgLunch}, 
+            {n: "Fried Rice", p: 100, img: imgLunch}
+        ],
+        "Dinner": [
+            {n: "Butter Chicken", p: 220, img: imgDinner}, 
+            {n: "Chicken Curry", p: 200, img: imgDinner}, 
+            {n: "Tandoori Chicken", p: 220, img: imgDinner},
+            {n: "Fish Curry", p: 220, img: imgDinner}, 
+            {n: "Mutton Curry", p: 260, img: imgDinner}, 
+            {n: "Paneer Butter Masala", p: 180, img: imgDinner},
+            {n: "Kadai Paneer", p: 170, img: imgDinner}, 
+            {n: "Palak Paneer", p: 170, img: imgDinner}, 
+            {n: "Mix Veg Curry", p: 140, img: imgDinner},
+            {n: "Dal Makhani", p: 140, img: imgDinner}, 
+            {n: "Butter Naan", p: 40, img: imgDinner}, 
+            {n: "Garlic Naan", p: 50, img: imgDinner},
+            {n: "Plain Naan", p: 35, img: imgDinner}, 
+            {n: "Tandoori Roti", p: 20, img: imgDinner}, 
+            {n: "Butter Roti", p: 25, img: imgDinner}
+        ],
+        "Chinese": [
+            {n: "Veg Fried Rice", p: 100, img: imgChinese}, 
+            {n: "Chicken Fried Rice", p: 140, img: imgChinese}, 
+            {n: "Schezwan Fried Rice", p: 120, img: imgChinese},
+            {n: "Veg Noodles", p: 100, img: imgChinese}, 
+            {n: "Chicken Noodles", p: 140, img: imgChinese}, 
+            {n: "Schezwan Noodles", p: 120, img: imgChinese},
+            {n: "Veg Manchurian", p: 120, img: imgChinese}, 
+            {n: "Chicken Manchurian", p: 160, img: imgChinese}, 
+            {n: "Chilli Paneer", p: 150, img: imgChinese},
+            {n: "Chilli Chicken", p: 180, img: imgChinese}, 
+            {n: "Veg Momos", p: 80, img: imgSnacks}, 
+            {n: "Chicken Momos", p: 120, img: imgSnacks},
+            {n: "Spring Rolls", p: 100, img: imgSnacks}, 
+            {n: "Hot & Sour Soup", p: 90, img: imgSoup}, 
+            {n: "Sweet Corn Soup", p: 80, img: imgSoup}
+        ],
+        "Italian": [
+            {n: "Margherita Pizza", p: 120, img: imgPizza}, 
+            {n: "Farmhouse Pizza", p: 180, img: imgPizza}, 
+            {n: "Paneer Pizza", p: 170, img: imgPizza},
+            {n: "Veggie Pizza", p: 150, img: imgPizza}, 
+            {n: "Cheese Burst Pizza", p: 200, img: imgPizza}, 
+            {n: "White Sauce Pasta", p: 120, img: imgPasta},
+            {n: "Red Sauce Pasta", p: 120, img: imgPasta}, 
+            {n: "Pink Sauce Pasta", p: 140, img: imgPasta}, 
+            {n: "Garlic Bread", p: 80, img: imgSnacks},
+            {n: "Cheese Garlic Bread", p: 100, img: imgSnacks}, 
+            {n: "Lasagna", p: 180, img: imgPasta}, 
+            {n: "Spaghetti", p: 150, img: imgPasta}
+        ],
+        "Street Food": [
+            {n: "Pani Puri", p: 30, img: imgChaat}, 
+            {n: "Bhel Puri", p: 40, img: imgChaat}, 
+            {n: "Sev Puri", p: 40, img: imgChaat},
+            {n: "Vada Pav", p: 30, img: imgSnacks}, 
+            {n: "Samosa", p: 20, img: imgSnacks}, 
+            {n: "Aloo Tikki", p: 40, img: imgChaat},
+            {n: "Pav Bhaji", p: 60, img: imgChaat}, 
+            {n: "Misal Pav", p: 60, img: imgChaat}, 
+            {n: "Egg Roll", p: 50, img: imgSnacks},
+            {n: "Kathi Roll", p: 60, img: imgSnacks}, 
+            {n: "Frankie Roll", p: 60, img: imgSnacks}
+        ],
+        "Snacks": [
+            {n: "French Fries", p: 80, img: imgSnacks}, 
+            {n: "Masala Fries", p: 100, img: imgSnacks}, 
+            {n: "Veg Sandwich", p: 60, img: imgSnacks},
+            {n: "Grilled Sandwich", p: 80, img: imgSnacks}, 
+            {n: "Paneer Sandwich", p: 100, img: imgSnacks}, 
+            {n: "Veg Cutlet", p: 40, img: imgSnacks},
+            {n: "Onion Pakoda", p: 40, img: imgSnacks}, 
+            {n: "Paneer Pakoda", p: 80, img: imgSnacks}, 
+            {n: "Onion Rings", p: 80, img: imgSnacks},
+            {n: "Popcorn", p: 60, img: imgSnacks}
+        ],
+        "Juices": [
+            {n: "Orange Juice", p: 50, img: imgJuice}, 
+            {n: "Watermelon Juice", p: 50, img: imgJuice}, 
+            {n: "Mango Juice", p: 60, img: imgJuice},
+            {n: "Pineapple Juice", p: 60, img: imgJuice}, 
+            {n: "Mosambi Juice", p: 50, img: imgJuice}, 
+            {n: "Pomegranate Juice", p: 70, img: imgJuice},
+            {n: "Sugarcane Juice", p: 40, img: imgJuice}
+        ],
+        "Smoothies": [
+            {n: "Mango Smoothie", p: 80, img: imgSmoothie}, 
+            {n: "Banana Smoothie", p: 70, img: imgSmoothie}, 
+            {n: "Strawberry Smoothie", p: 90, img: imgSmoothie},
+            {n: "Chocolate Smoothie", p: 100, img: imgSmoothie}, 
+            {n: "Peanut Butter Smoothie", p: 110, img: imgSmoothie}, 
+            {n: "Mixed Berry Smoothie", p: 120, img: imgSmoothie}
+        ],
+        "Mocktails": [
+            {n: "Virgin Mojito", p: 120, img: imgMocktail}, 
+            {n: "Blue Lagoon", p: 130, img: imgMocktail}, 
+            {n: "Strawberry Mojito", p: 130, img: imgMocktail},
+            {n: "Green Apple Mojito", p: 130, img: imgMocktail}, 
+            {n: "Pineapple Mint Cooler", p: 120, img: imgMocktail}, 
+            {n: "Watermelon Cooler", p: 110, img: imgMocktail},
+            {n: "Cranberry Fizz", p: 140, img: imgMocktail}, 
+            {n: "Mint Lemonade", p: 100, img: imgMocktail}, 
+            {n: "Fruit Punch", p: 150, img: imgMocktail},
+            {n: "Orange Sunset", p: 120, img: imgMocktail}
+        ],
+        "Soups": [
+            {n: "Tomato Soup", p: 80, img: imgSoup}, 
+            {n: "Sweet Corn Soup", p: 80, img: imgSoup}, 
+            {n: "Hot & Sour Soup", p: 90, img: imgSoup},
+            {n: "Manchow Soup", p: 90, img: imgSoup}, 
+            {n: "Veg Clear Soup", p: 70, img: imgSoup}, 
+            {n: "Chicken Clear Soup", p: 100, img: imgSoup},
+            {n: "Chicken Manchow Soup", p: 110, img: imgSoup}, 
+            {n: "Mushroom Soup", p: 100, img: imgSoup}, 
+            {n: "Lemon Coriander Soup", p: 90, img: imgSoup},
+            {n: "Cream of Tomato Soup", p: 90, img: imgSoup}
+        ],
+        "Ice Cream": [
+            {n: "Vanilla Ice Cream", p: 50, img: imgDessert}, 
+            {n: "Chocolate Ice Cream", p: 60, img: imgDessert}, 
+            {n: "Strawberry Ice Cream", p: 60, img: imgDessert},
+            {n: "Butterscotch Ice Cream", p: 70, img: imgDessert}, 
+            {n: "Mango Ice Cream", p: 60, img: imgDessert}, 
+            {n: "Black Currant Ice Cream", p: 70, img: imgDessert},
+            {n: "Chocolate Chip Ice Cream", p: 80, img: imgDessert}, 
+            {n: "Kulfi", p: 50, img: imgDessert}, 
+            {n: "Matka Kulfi", p: 70, img: imgDessert},
+            {n: "Ice Cream Sundae", p: 120, img: imgDessert}
+        ],
+        "Desserts": [
+            {n: "Gulab Jamun", p: 50, img: imgDessert}, 
+            {n: "Rasgulla", p: 50, img: imgDessert}, 
+            {n: "Rasmalai", p: 70, img: imgDessert},
+            {n: "Kaju Katli", p: 90, img: imgDessert}, 
+            {n: "Gajar Ka Halwa", p: 80, img: imgDessert}, 
+            {n: "Moong Dal Halwa", p: 90, img: imgDessert},
+            {n: "Chocolate Brownie", p: 120, img: imgDessert}, 
+            {n: "Brownie with Ice Cream", p: 150, img: imgDessert}, 
+            {n: "Cheesecake", p: 160, img: imgDessert},
+            {n: "Tiramisu", p: 180, img: imgDessert}
+        ]
+    };
+
+    let cart = [];
+
+    function renderTabs() {
+        const container = document.getElementById('tabContainer');
+        Object.keys(menuData).forEach((cat, index) => {
+            const btn = document.createElement('button');
+            btn.className = `tab-btn ${index === 0 ? 'active' : ''}`;
+            btn.innerText = cat;
+            btn.onclick = () => renderMenu(cat, btn);
+            container.appendChild(btn);
+        });
+        renderMenu(Object.keys(menuData)[0]); 
+    }
+
+    function renderMenu(category, btnElement) {
+        if(btnElement) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btnElement.classList.add('active');
+        }
+        
+        const display = document.getElementById('menuDisplay');
+        display.innerHTML = `<div class="grid"></div>`;
+        const grid = display.querySelector('.grid');
+
+        menuData[category].forEach(item => {
+            grid.innerHTML += `
+                <div class="item-card">
+                    <img src="${item.img}" alt="${item.n}" class="item-img" loading="lazy">
+                    <div class="item-info">
+                        <h4>${item.n}</h4>
+                        <span class="price">₹${item.p}</span>
+                        <button class="add-btn" onclick="addToCart('${item.n}', ${item.p})">+ Add</button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    function addToCart(name, price) {
+        cart.push({name, price});
+        updateCart();
+    }
+
+    function updateCart() {
+        const total = cart.reduce((s, i) => s + i.price, 0);
+        document.getElementById('cart-count').innerText = `🛒 ${cart.length} Items`;
+        document.getElementById('cart-total').innerText = `Total: ₹${total}`;
+    }
+
+    function sendOrder() {
+        if(cart.length === 0) return alert("Please select some food first!");
+        let total = cart.reduce((s, i) => s + i.price, 0);
+        let text = "*NEW CAFE ORDER*%0A--------------------%0A";
+        cart.forEach((item, i) => text += `${i+1}. ${item.name} - ₹${item.price}%0A`);
+        text += `--------------------%0A*Grand Total: ₹${total}*%0A%0A*Payment Mode: UPI / Cash*%0APlease confirm my order!`;
+        
+        // Update this with your actual WhatsApp number
+        window.open(`https://wa.me/919876543210?text=${text}`); 
+    }
+
+    renderTabs();
+</script>
+
+</body>
+</html>
