@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Street Cafe | Food Delivery System</title>
+    <style>
+        :root { --primary: #e67e22; --bg-color: #f4f7f6; --text-color: #2c3e50; --card-bg: white; --header-bg: white; --border-color: #eee; }
+        .dark-mode { --bg-color: #121212; --text-color: #f4f4f4; --card-bg: #1e1e1e; --header-bg: #1a1a1a; --border-color: #333; }
+
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg-color); color: var(--text-color); padding-bottom: 100px; transition: 0.3s; }
+        
+        header { background: var(--header-bg); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); position: sticky; top: 0; z-index: 100; }
+        header h1 { margin: 0; font-size: 1.5rem; color: var(--primary); font-weight: 800; }
+        
+        .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+        .icon-btn { background: none; border: 1px solid var(--primary); color: var(--text-color); padding: 5px 10px; border-radius: 20px; cursor: pointer; font-size: 0.85rem; font-weight: bold; transition: 0.2s; }
+        .icon-btn:hover { background: var(--primary); color: white; }
+        .search-bar { padding: 8px 10px; border-radius: 20px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); outline: none; width: 110px; font-size: 0.85rem; }
+
+        .menu-tabs { display: flex; overflow-x: auto; gap: 8px; background: var(--header-bg); padding: 10px 15px; border-bottom: 1px solid var(--border-color); white-space: nowrap; scrollbar-width: none; }
+        .menu-tabs::-webkit-scrollbar { display: none; }
+        .tab-btn { padding: 8px 16px; border: 1px solid var(--border-color); background: var(--bg-color); border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 0.9rem; color: var(--text-color); transition: 0.2s; }
+        .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        .menu-section { padding: 20px; max-width: 1200px; margin: auto; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
+        
+        .item-card { background: var(--card-bg); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; border: 1px solid var(--border-color); position: relative; transition: 0.3s; }
+        .item-img { width: 100%; height: 130px; object-fit: cover; border-bottom: 2px solid var(--primary); background: #ddd; transition: 0.3s; }
+        .dimmed { opacity: 0.4; filter: grayscale(100%); } /* For Out of Stock */
+        
+        .badge { position: absolute; top: 10px; left: 10px; background: #e74c3c; color: white; padding: 3px 8px; font-size: 0.7rem; font-weight: bold; border-radius: 5px; z-index: 2; }
+        .out-stock-badge { position: absolute; top: 50px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 5px 10px; font-size: 0.9rem; font-weight: bold; border-radius: 5px; z-index: 2; border: 1px solid white; white-space: nowrap;}
+        .fav-btn { position: absolute; top: 10px; right: 10px; background: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 1.2rem; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 2; }
+        .fav-btn.active { color: #e74c3c; }
+        
+        .item-info { padding: 12px; display: flex; flex-direction: column; flex-grow: 1; }
+        .item-info h4 { margin: 0 0 5px; font-size: 0.95rem; line-height: 1.3; }
+        .price { color: var(--primary); font-weight: bold; font-size: 1.1rem; margin-bottom: 10px; }
+        
+        .add-btn { background: var(--card-bg); color: var(--primary); border: 2px solid var(--primary); padding: 8px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-top: auto; transition: 0.2s; }
+        .add-btn:hover:not(:disabled) { background: var(--primary); color: white; }
+        .add-btn:disabled { background: #eee; border-color: #ccc; color: #999; cursor: not-allowed; }
+
+        .admin-edit-btn { background: #3498db; color: white; border: none; padding: 6px; border-radius: 5px; font-size: 0.8rem; font-weight: bold; margin-top: 8px; cursor: pointer; width: 100%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+
+        .cart-bar { position: fixed; bottom: 0; width: 100%; background: var(--primary); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; box-sizing: border-box; font-size: 1.1rem; z-index: 90; box-shadow: 0 -4px 15px rgba(0,0,0,0.2); }
+        
+        /* Modals */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 200; justify-content: center; align-items: flex-end; }
+        .modal-content { background: var(--card-bg); color: var(--text-color); width: 100%; max-width: 500px; padding: 20px; border-radius: 20px 20px 0 0; box-sizing: border-box; max-height: 90vh; overflow-y: auto; position: relative; animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: var(--text-color); }
+        .cart-item-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; font-size: 0.95rem; }
+        .qty-controls { display: flex; align-items: center; gap: 10px; }
+        .qty-btn { background: var(--primary); color: white; border: none; border-radius: 5px; width: 25px; height: 25px; cursor: pointer; font-weight: bold; }
+        
+        /* Forms & Inputs */
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; font-size: 0.9rem; font-weight: bold; }
+        .input-box, .order-notes { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); box-sizing: border-box; font-family: inherit; }
+        
+        .condiments-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; background: var(--bg-color); padding: 10px; border-radius: 8px; }
+        .condiments-grid label { display: flex; align-items: center; gap: 5px; font-size: 0.9rem; cursor: pointer; }
+        
+        .payment-section { margin: 15px 0; background: var(--bg-color); padding: 15px; border-radius: 10px; border: 1px solid var(--border-color); }
+        .payment-section label { display: block; margin-bottom: 10px; font-size: 1rem; cursor: pointer; }
+        
+        .qr-box { display: none; text-align: center; margin-top: 15px; padding: 15px; background: white; border-radius: 10px; border: 2px dashed var(--primary); }
+        .qr-box img { width: 150px; height: 150px; }
+        
+        .action-btn { background: #27ae60; color: white; border: none; width: 100%; padding: 15px; font-size: 1.1rem; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .secondary-btn { background: #7f8c8d; color: white; border: none; width: 100%; padding: 15px; font-size: 1.1rem; border-radius: 10px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+
+        /* Tracking Dashboard Styles */
+        .order-history-card { background: var(--bg-color); border: 1px solid var(--border-color); padding: 15px; border-radius: 10px; margin-bottom: 15px; }
+        .order-history-header { display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; margin-bottom: 8px; font-weight: bold; }
+        .status-badge { background: #f39c12; color: white; padding: 3px 8px; border-radius: 5px; font-size: 0.8rem; }
+        
+        .tracking-bar { display: flex; justify-content: space-between; margin-top: 20px; position: relative; }
+        .tracking-bar::before { content: ''; position: absolute; top: 15px; left: 0; width: 100%; height: 4px; background: var(--border-color); z-index: 1; }
+        .track-step { display: flex; flex-direction: column; align-items: center; z-index: 2; width: 33%; font-size: 0.8rem; text-align: center; }
+        .track-dot { width: 30px; height: 30px; border-radius: 50%; background: var(--bg-color); display: flex; justify-content: center; align-items: center; margin-bottom: 5px; font-weight: bold; color: #aaa; border: 3px solid var(--card-bg); }
+        .track-step.active .track-dot { background: var(--primary); color: white; border-color: var(--primary); }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Street Cafe</h1>
+    <div class="controls">
+        <input type="text" class="search-bar" id="searchInput" placeholder="Search menu..." onkeyup="searchMenu()">
+        <button class="icon-btn" onclick="openTrackingDashboard()">📦 Track</button>
+        <button class="icon-btn" id="adminToggleBtn" onclick="adminLogin()">Admin</button>
+        <button class="theme-btn" onclick="toggleDarkMode()">🌙</button>
+    </div>
+</header>
+
+<div class="menu-tabs" id="tabContainer"></div>
+<div class="menu-section" id="menuDisplay"></div>
+
+<div class="cart-bar" onclick="viewCart()">
+    <span id="cart-count">🛒 0 Items</span>
+    <span id="cart-total">Total: ₹0</span>
+    <strong>View Cart ➔</strong>
+</div>
+
+<div class="modal-overlay" id="trackingModal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal('trackingModal')">✖</span>
+        <h2 style="margin-top: 0;">My Orders</h2>
+        <div id="tracking-list">
+            </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="cartModal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal('cartModal')">✖</span>
+        <h2 style="margin-top: 0;">Your Cart</h2>
+        <div id="cart-items-list" style="margin-bottom: 15px;"></div>
+        <h3 id="modal-total-display" style="color: var(--primary); text-align: right; border-top: 2px solid var(--border-color); padding-top: 10px;">Total: ₹0</h3>
+        
+        <div class="input-group">
+            <label>Condiments & Extras (Free)</label>
+            <div class="condiments-grid">
+                <label><input type="checkbox" class="condiment" value="Tomato Sauce"> Tomato Sauce</label>
+                <label><input type="checkbox" class="condiment" value="Chilli Sauce"> Chilli Sauce</label>
+                <label><input type="checkbox" class="condiment" value="Mayonnaise"> Mayonnaise</label>
+                <label><input type="checkbox" class="condiment" value="Oregano"> Oregano</label>
+                <label><input type="checkbox" class="condiment" value="Chilli Flakes"> Chilli Flakes</label>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label><input type="checkbox" id="needCutlery"> Send Cutlery (Spoons/Forks) 🍴</label>
+        </div>
+        
+        <div class="input-group">
+            <label>Cooking Instructions</label>
+            <textarea id="orderNotes" class="order-notes" rows="2" placeholder="e.g. Make it extra spicy, no onions..."></textarea>
+        </div>
+        
+        <button class="action-btn" onclick="proceedToCheckout()">Proceed to Checkout ➔</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="checkoutModal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal('checkoutModal')">✖</span>
+        <h2 style="margin-top: 0;">Checkout Details</h2>
+        <div class="input-group">
+            <label>Order Type</label>
+            <select id="orderType" class="input-box" onchange="toggleDeliveryFields()">
+                <option value="Delivery">Home Delivery 🛵</option>
+                <option value="Pickup">Takeaway / Pickup 🛍️</option>
+                <option value="Dine-In">Reserve Table / Dine-In 🍽️</option>
+            </select>
+        </div>
+        <div class="input-group"><label>Customer Name</label><input type="text" id="custName" class="input-box" placeholder="Enter your name" required></div>
+        <div class="input-group"><label>Phone Number</label><input type="tel" id="custPhone" class="input-box" placeholder="Enter phone number" required></div>
+        <div class="input-group" id="addressGroup"><label>Delivery Address</label><textarea id="custAddress" class="input-box" rows="2" placeholder="House no, Street, Landmark..."></textarea></div>
+        <div class="input-group"><label>Schedule Order (Optional)</label><input type="time" id="scheduleTime" class="input-box"></div>
+        <button class="action-btn" onclick="proceedToPayment()">Proceed to Payment ➔</button>
+        <button class="secondary-btn" onclick="backToCart()">⬅ Back to Cart</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="paymentModal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal('paymentModal')">✖</span>
+        <h2 style="margin-top: 0;">Payment</h2>
+        <h3 style="color: var(--primary); text-align: center;">Amount to Pay: <span id="pay-amount-display">₹0</span></h3>
+        <div class="payment-section">
+            <label><input type="radio" name="pay_mode" value="UPI" onchange="toggleQR()" checked> UPI (GPay/PhonePe/Paytm)</label>
+            <label><input type="radio" name="pay_mode" value="Card" onchange="toggleQR()"> Credit/Debit Card</label>
+            <label><input type="radio" name="pay_mode" value="Cash" onchange="toggleQR()"> Cash on Delivery</label>
+        </div>
+        <div id="qrCodeBox" class="qr-box" style="display: block;">
+            <p style="margin-top:0; font-weight:bold;">Scan to Pay</p>
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=restaurant@upi&pn=StreetCafe" alt="UPI QR">
+        </div>
+        <button class="action-btn" onclick="confirmOrder()">Confirm & Place Order ✔</button>
+        <button class="secondary-btn" onclick="backToCheckout()">⬅ Back</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="successModal">
+    <div class="modal-content" style="text-align: center;">
+        <h1 style="font-size: 3rem; margin: 0;">🎉</h1>
+        <h2 style="color: #27ae60;">Order Placed Successfully!</h2>
+        <p style="font-size: 1.1rem; font-weight: bold;">Order ID: #<span id="genOrderId"></span></p>
+        
+        <div style="background: #e8f8f5; border: 1px solid #1abc9c; padding: 10px; border-radius: 8px; margin-bottom: 15px;">
+            <span style="font-size: 1.2rem;">📱</span> <strong id="smsConfirmText" style="color: #16a085; font-size: 0.9rem;"></strong>
+        </div>
+
+        <p style="font-size: 0.9rem;">Opening WhatsApp to alert the kitchen...</p>
+
+        <div class="tracking-bar">
+            <div class="track-step active"><div class="track-dot">1</div><span>Placed</span></div>
+            <div class="track-step"><div class="track-dot">2</div><span>Preparing</span></div>
+            <div class="track-step"><div class="track-dot">3</div><span>Delivering</span></div>
+        </div>
+        
+        <button class="secondary-btn" style="margin-top: 30px;" onclick="closeModal('successModal')">Close Dashboard</button>
+    </div>
+</div>
+
+<script>
+    const RESTAURANT_NUMBER = "919640646713"; 
+    
+    // Feature 3: Admin State & Order Memory
+    let isAdmin = false;
+    let myOrderHistory = JSON.parse(localStorage.getItem('cafe_orders')) || [];
+
+    // Base Data
+    const menuData = {
+        "Combos & Offers 🎁": [
+            {n: "Family Pizza Combo", p: 499, img: "https://placehold.co/400x300/27ae60/ffffff?text=Family+Pizza+Combo"},
+            {n: "Breakfast Mega Saver", p: 149, img: "https://placehold.co/400x300/27ae60/ffffff?text=Breakfast+Mega+Saver"},
+            {n: "Student Biryani Meal", p: 199, img: "https://placehold.co/400x300/27ae60/ffffff?text=Student+Biryani+Meal"}
+        ],
+        "Breakfast": [
+            {n: "Plain Dosa", p: 30, img: "https://placehold.co/400x300/e67e22/ffffff?text=Plain+Dosa"},
+            {n: "Masala Dosa", p: 50, img: "https://placehold.co/400x300/e67e22/ffffff?text=Masala+Dosa"},
+            {n: "Cheese Dosa", p: 70, img: "https://placehold.co/400x300/e67e22/ffffff?text=Cheese+Dosa"},
+            {n: "Onion Dosa", p: 40, img: "https://placehold.co/400x300/e67e22/ffffff?text=Onion+Dosa"},
+            {n: "Rava Dosa", p: 50, img: "https://placehold.co/400x300/e67e22/ffffff?text=Rava+Dosa"},
+            {n: "Mysore Dosa", p: 60, img: "https://placehold.co/400x300/e67e22/ffffff?text=Mysore+Dosa"},
+            {n: "Paper Dosa", p: 40, img: "https://placehold.co/400x300/e67e22/ffffff?text=Paper+Dosa"},
+            {n: "Neer Dosa", p: 40, img: "https://placehold.co/400x300/e67e22/ffffff?text=Neer+Dosa"},
+            {n: "Adai Dosa", p: 60, img: "https://placehold.co/400x300/e67e22/ffffff?text=Adai+Dosa"},
+            {n: "Ghee Roast Dosa", p: 80, img: "https://placehold.co/400x300/e67e22/ffffff?text=Ghee+Roast+Dosa"},
+            {n: "Plain Idli", p: 10, img: "https://placehold.co/400x300/e67e22/ffffff?text=Plain+Idli"},
+            {n: "Rava Idli", p: 30, img: "https://placehold.co/400x300/e67e22/ffffff?text=Rava+Idli"},
+            {n: "Mini Idli", p: 15, img: "https://placehold.co/400x300/e67e22/ffffff?text=Mini+Idli"},
+            {n: "Stuffed Idli", p: 40, img: "https://placehold.co/400x300/e67e22/ffffff?text=Stuffed+Idli"},
+            {n: "Sambar Idli", p: 40, img: "https://placehold.co/400x300/e67e22/ffffff?text=Sambar+Idli"},
+            {n: "Rice Idli", p: 10, img: "https://placehold.co/400x300/e67e22/ffffff?text=Rice+Idli"},
+            {n: "Millet Idli", p: 30, img: "https://placehold.co/400x300/e67e22/ffffff?text=Millet+Idli"},
+            {n: "Pongal", p: 40, img: "https://placehold.co/400x300/e67e22/ffffff?text=Pongal"},
+            {n: "Plain Uttapam", p: 50, img: "https://placehold.co/400x300/e67e22/ffffff?text=Plain+Uttapam"},
+            {n: "Vegetable Uttapam", p: 60, img: "https://placehold.co/400x300/e67e22/ffffff?text=Vegetable+Uttapam"}
+        ],
+        "Upma Varieties": [
+            {n: "Classic Upma", p: 30, img: "https://placehold.co/400x300/f39c12/ffffff?text=Classic+Upma"},
+            {n: "Rava Upma", p: 30, img: "https://placehold.co/400x300/f39c12/ffffff?text=Rava+Upma"},
+            {n: "Vegetable Upma", p: 40, img: "https://placehold.co/400x300/f39c12/ffffff?text=Vegetable+Upma"},
+            {n: "Oats Upma", p: 40, img: "https://placehold.co/400x300/f39c12/ffffff?text=Oats+Upma"},
+            {n: "Millet Upma", p: 40, img: "https://placehold.co/400x300/f39c12/ffffff?text=Millet+Upma"},
+            {n: "Quinoa Upma", p: 50, img: "https://placehold.co/400x300/f39c12/ffffff?text=Quinoa+Upma"},
+            {n: "Tomato Upma", p: 40, img: "https://placehold.co/400x300/f39c12/ffffff?text=Tomato+Upma"},
+            {n: "Onion Upma", p: 40, img: "https://placehold.co/400x300/f39c12/ffffff?text=Onion+Upma"},
+            {n: "Spicy Upma", p: 40, img: "https://placehold.co/400x300/f39c12/ffffff?text=Spicy+Upma"},
+            {n: "Upma with Nuts", p: 50, img: "https://placehold.co/400x300/f39c12/ffffff?text=Upma+with+Nuts"}
+        ],
+        "Lunch": [
+            {n: "Veg Thali", p: 120, img: "https://placehold.co/400x300/c0392b/ffffff?text=Veg+Thali"},
+            {n: "Special Veg Thali", p: 150, img: "https://placehold.co/400x300/c0392b/ffffff?text=Special+Veg+Thali"},
+            {n: "Dal Rice", p: 80, img: "https://placehold.co/400x300/c0392b/ffffff?text=Dal+Rice"},
+            {n: "Rajma Rice", p: 100, img: "https://placehold.co/400x300/c0392b/ffffff?text=Rajma+Rice"},
+            {n: "Chole Rice", p: 100, img: "https://placehold.co/400x300/c0392b/ffffff?text=Chole+Rice"},
+            {n: "Curd Rice", p: 70, img: "https://placehold.co/400x300/c0392b/ffffff?text=Curd+Rice"},
+            {n: "Lemon Rice", p: 70, img: "https://placehold.co/400x300/c0392b/ffffff?text=Lemon+Rice"},
+            {n: "Veg Biryani", p: 120, img: "https://placehold.co/400x300/c0392b/ffffff?text=Veg+Biryani"},
+            {n: "Paneer Biryani", p: 160, img: "https://placehold.co/400x300/c0392b/ffffff?text=Paneer+Biryani"},
+            {n: "Chicken Biryani", p: 180, img: "https://placehold.co/400x300/c0392b/ffffff?text=Chicken+Biryani"},
+            {n: "Egg Biryani", p: 150, img: "https://placehold.co/400x300/c0392b/ffffff?text=Egg+Biryani"},
+            {n: "Hyderabadi Biryani", p: 200, img: "https://placehold.co/400x300/c0392b/ffffff?text=Hyderabadi+Biryani"},
+            {n: "Vegetable Pulao", p: 100, img: "https://placehold.co/400x300/c0392b/ffffff?text=Vegetable+Pulao"},
+            {n: "Jeera Rice", p: 90, img: "https://placehold.co/400x300/c0392b/ffffff?text=Jeera+Rice"},
+            {n: "Fried Rice", p: 100, img: "https://placehold.co/400x300/c0392b/ffffff?text=Fried+Rice"}
+        ],
+        "Dinner": [
+            {n: "Butter Chicken", p: 220, img: "https://placehold.co/400x300/d35400/ffffff?text=Butter+Chicken"},
+            {n: "Chicken Curry", p: 200, img: "https://placehold.co/400x300/d35400/ffffff?text=Chicken+Curry"},
+            {n: "Tandoori Chicken", p: 220, img: "https://placehold.co/400x300/d35400/ffffff?text=Tandoori+Chicken"},
+            {n: "Fish Curry", p: 220, img: "https://placehold.co/400x300/d35400/ffffff?text=Fish+Curry"},
+            {n: "Mutton Curry", p: 260, img: "https://placehold.co/400x300/d35400/ffffff?text=Mutton+Curry"},
+            {n: "Paneer Butter Masala", p: 180, img: "https://placehold.co/400x300/d35400/ffffff?text=Paneer+Butter+Masala"},
+            {n: "Kadai Paneer", p: 170, img: "https://placehold.co/400x300/d35400/ffffff?text=Kadai+Paneer"},
+            {n: "Palak Paneer", p: 170, img: "https://placehold.co/400x300/d35400/ffffff?text=Palak+Paneer"},
+            {n: "Mix Veg Curry", p: 140, img: "https://placehold.co/400x300/d35400/ffffff?text=Mix+Veg+Curry"},
+            {n: "Dal Makhani", p: 140, img: "https://placehold.co/400x300/d35400/ffffff?text=Dal+Makhani"},
+            {n: "Butter Naan", p: 40, img: "https://placehold.co/400x300/d35400/ffffff?text=Butter+Naan"},
+            {n: "Garlic Naan", p: 50, img: "https://placehold.co/400x300/d35400/ffffff?text=Garlic+Naan"},
+            {n: "Plain Naan", p: 35, img: "https://placehold.co/400x300/d35400/ffffff?text=Plain+Naan"},
+            {n: "Tandoori Roti", p: 20, img: "https://placehold.co/400x300/d35400/ffffff?text=Tandoori+Roti"},
+            {n: "Butter Roti", p: 25, img: "https://placehold.co/400x300/d35400/ffffff?text=Butter+Roti"}
+        ],
+        "Chinese": [
+            {n: "Veg Fried Rice", p: 100, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Veg+Fried+Rice"},
+            {n: "Chicken Fried Rice", p: 140, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Chicken+Fried+Rice"},
+            {n: "Schezwan Fried Rice", p: 120, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Schezwan+Fried+Rice"},
+            {n: "Veg Noodles", p: 100, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Veg+Noodles"},
+            {n: "Chicken Noodles", p: 140, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Chicken+Noodles"},
+            {n: "Schezwan Noodles", p: 120, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Schezwan+Noodles"},
+            {n: "Veg Manchurian", p: 120, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Veg+Manchurian"},
+            {n: "Chicken Manchurian", p: 160, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Chicken+Manchurian"},
+            {n: "Chilli Paneer", p: 150, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Chilli+Paneer"},
+            {n: "Chilli Chicken", p: 180, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Chilli+Chicken"},
+            {n: "Veg Momos", p: 80, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Veg+Momos"},
+            {n: "Chicken Momos", p: 120, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Chicken+Momos"},
+            {n: "Spring Rolls", p: 100, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Spring+Rolls"},
+            {n: "Hot & Sour Soup", p: 90, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Hot+%26+Sour+Soup"},
+            {n: "Sweet Corn Soup", p: 80, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Sweet+Corn+Soup"}
+        ],
+        "Italian": [
+            {n: "Margherita Pizza", p: 120, img: "https://placehold.co/400x300/c0392b/ffffff?text=Margherita+Pizza"},
+            {n: "Farmhouse Pizza", p: 180, img: "https://placehold.co/400x300/c0392b/ffffff?text=Farmhouse+Pizza"},
+            {n: "Paneer Pizza", p: 170, img: "https://placehold.co/400x300/c0392b/ffffff?text=Paneer+Pizza"},
+            {n: "Veggie Pizza", p: 150, img: "https://placehold.co/400x300/c0392b/ffffff?text=Veggie+Pizza"},
+            {n: "Cheese Burst Pizza", p: 200, img: "https://placehold.co/400x300/c0392b/ffffff?text=Cheese+Burst+Pizza"},
+            {n: "White Sauce Pasta", p: 120, img: "https://placehold.co/400x300/c0392b/ffffff?text=White+Sauce+Pasta"},
+            {n: "Red Sauce Pasta", p: 120, img: "https://placehold.co/400x300/c0392b/ffffff?text=Red+Sauce+Pasta"},
+            {n: "Pink Sauce Pasta", p: 140, img: "https://placehold.co/400x300/c0392b/ffffff?text=Pink+Sauce+Pasta"},
+            {n: "Garlic Bread", p: 80, img: "https://placehold.co/400x300/c0392b/ffffff?text=Garlic+Bread"},
+            {n: "Cheese Garlic Bread", p: 100, img: "https://placehold.co/400x300/c0392b/ffffff?text=Cheese+Garlic+Bread"},
+            {n: "Lasagna", p: 180, img: "https://placehold.co/400x300/c0392b/ffffff?text=Lasagna"},
+            {n: "Spaghetti", p: 150, img: "https://placehold.co/400x300/c0392b/ffffff?text=Spaghetti"}
+        ],
+        "Street Food": [
+            {n: "Pani Puri", p: 30, img: "https://placehold.co/400x300/16a085/ffffff?text=Pani+Puri"},
+            {n: "Bhel Puri", p: 40, img: "https://placehold.co/400x300/16a085/ffffff?text=Bhel+Puri"},
+            {n: "Sev Puri", p: 40, img: "https://placehold.co/400x300/16a085/ffffff?text=Sev+Puri"},
+            {n: "Vada Pav", p: 30, img: "https://placehold.co/400x300/16a085/ffffff?text=Vada+Pav"},
+            {n: "Samosa", p: 20, img: "https://placehold.co/400x300/16a085/ffffff?text=Samosa"},
+            {n: "Aloo Tikki", p: 40, img: "https://placehold.co/400x300/16a085/ffffff?text=Aloo+Tikki"},
+            {n: "Pav Bhaji", p: 60, img: "https://placehold.co/400x300/16a085/ffffff?text=Pav+Bhaji"},
+            {n: "Misal Pav", p: 60, img: "https://placehold.co/400x300/16a085/ffffff?text=Misal+Pav"},
+            {n: "Egg Roll", p: 50, img: "https://placehold.co/400x300/16a085/ffffff?text=Egg+Roll"},
+            {n: "Kathi Roll", p: 60, img: "https://placehold.co/400x300/16a085/ffffff?text=Kathi+Roll"},
+            {n: "Frankie Roll", p: 60, img: "https://placehold.co/400x300/16a085/ffffff?text=Frankie+Roll"}
+        ],
+        "Snacks": [
+            {n: "French Fries", p: 80, img: "https://placehold.co/400x300/f39c12/ffffff?text=French+Fries"},
+            {n: "Masala Fries", p: 100, img: "https://placehold.co/400x300/f39c12/ffffff?text=Masala+Fries"},
+            {n: "Veg Sandwich", p: 60, img: "https://placehold.co/400x300/f39c12/ffffff?text=Veg+Sandwich"},
+            {n: "Grilled Sandwich", p: 80, img: "https://placehold.co/400x300/f39c12/ffffff?text=Grilled+Sandwich"},
+            {n: "Paneer Sandwich", p: 100, img: "https://placehold.co/400x300/f39c12/ffffff?text=Paneer+Sandwich"},
+            {n: "Veg Cutlet", p: 40, img: "https://placehold.co/400x300/f39c12/ffffff?text=Veg+Cutlet"},
+            {n: "Onion Pakoda", p: 40, img: "https://placehold.co/400x300/f39c12/ffffff?text=Onion+Pakoda"},
+            {n: "Paneer Pakoda", p: 80, img: "https://placehold.co/400x300/f39c12/ffffff?text=Paneer+Pakoda"},
+            {n: "Onion Rings", p: 80, img: "https://placehold.co/400x300/f39c12/ffffff?text=Onion+Rings"},
+            {n: "Popcorn", p: 60, img: "https://placehold.co/400x300/f39c12/ffffff?text=Popcorn"}
+        ],
+        "Juices": [
+            {n: "Orange Juice", p: 50, img: "https://placehold.co/400x300/2980b9/ffffff?text=Orange+Juice"},
+            {n: "Watermelon Juice", p: 50, img: "https://placehold.co/400x300/2980b9/ffffff?text=Watermelon+Juice"},
+            {n: "Mango Juice", p: 60, img: "https://placehold.co/400x300/2980b9/ffffff?text=Mango+Juice"},
+            {n: "Pineapple Juice", p: 60, img: "https://placehold.co/400x300/2980b9/ffffff?text=Pineapple+Juice"},
+            {n: "Mosambi Juice", p: 50, img: "https://placehold.co/400x300/2980b9/ffffff?text=Mosambi+Juice"},
+            {n: "Pomegranate Juice", p: 70, img: "https://placehold.co/400x300/2980b9/ffffff?text=Pomegranate+Juice"},
+            {n: "Sugarcane Juice", p: 40, img: "https://placehold.co/400x300/2980b9/ffffff?text=Sugarcane+Juice"}
+        ],
+        "Smoothies": [
+            {n: "Mango Smoothie", p: 80, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Mango+Smoothie"},
+            {n: "Banana Smoothie", p: 70, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Banana+Smoothie"},
+            {n: "Strawberry Smoothie", p: 90, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Strawberry+Smoothie"},
+            {n: "Chocolate Smoothie", p: 100, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Chocolate+Smoothie"},
+            {n: "Peanut Butter Smoothie", p: 110, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Peanut+Butter+Smoothie"},
+            {n: "Mixed Berry Smoothie", p: 120, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Mixed+Berry+Smoothie"}
+        ],
+        "Mocktails": [
+            {n: "Virgin Mojito", p: 120, img: "https://placehold.co/400x300/16a085/ffffff?text=Virgin+Mojito"},
+            {n: "Blue Lagoon", p: 130, img: "https://placehold.co/400x300/16a085/ffffff?text=Blue+Lagoon"},
+            {n: "Strawberry Mojito", p: 130, img: "https://placehold.co/400x300/16a085/ffffff?text=Strawberry+Mojito"},
+            {n: "Green Apple Mojito", p: 130, img: "https://placehold.co/400x300/16a085/ffffff?text=Green+Apple+Mojito"},
+            {n: "Pineapple Mint Cooler", p: 120, img: "https://placehold.co/400x300/16a085/ffffff?text=Pineapple+Mint+Cooler"},
+            {n: "Watermelon Cooler", p: 110, img: "https://placehold.co/400x300/16a085/ffffff?text=Watermelon+Cooler"},
+            {n: "Cranberry Fizz", p: 140, img: "https://placehold.co/400x300/16a085/ffffff?text=Cranberry+Fizz"},
+            {n: "Mint Lemonade", p: 100, img: "https://placehold.co/400x300/16a085/ffffff?text=Mint+Lemonade"},
+            {n: "Fruit Punch", p: 150, img: "https://placehold.co/400x300/16a085/ffffff?text=Fruit+Punch"},
+            {n: "Orange Sunset", p: 120, img: "https://placehold.co/400x300/16a085/ffffff?text=Orange+Sunset"}
+        ],
+        "Soups": [
+            {n: "Tomato Soup", p: 80, img: "https://placehold.co/400x300/c0392b/ffffff?text=Tomato+Soup"},
+            {n: "Sweet Corn Soup", p: 80, img: "https://placehold.co/400x300/c0392b/ffffff?text=Sweet+Corn+Soup"},
+            {n: "Hot & Sour Soup", p: 90, img: "https://placehold.co/400x300/c0392b/ffffff?text=Hot+%26+Sour+Soup"},
+            {n: "Manchow Soup", p: 90, img: "https://placehold.co/400x300/c0392b/ffffff?text=Manchow+Soup"},
+            {n: "Veg Clear Soup", p: 70, img: "https://placehold.co/400x300/c0392b/ffffff?text=Veg+Clear+Soup"},
+            {n: "Chicken Clear Soup", p: 100, img: "https://placehold.co/400x300/c0392b/ffffff?text=Chicken+Clear+Soup"},
+            {n: "Chicken Manchow Soup", p: 110, img: "https://placehold.co/400x300/c0392b/ffffff?text=Chicken+Manchow+Soup"},
+            {n: "Mushroom Soup", p: 100, img: "https://placehold.co/400x300/c0392b/ffffff?text=Mushroom+Soup"},
+            {n: "Lemon Coriander Soup", p: 90, img: "https://placehold.co/400x300/c0392b/ffffff?text=Lemon+Coriander+Soup"},
+            {n: "Cream of Tomato Soup", p: 90, img: "https://placehold.co/400x300/c0392b/ffffff?text=Cream+of+Tomato+Soup"}
+        ],
+        "Ice Cream": [
+            {n: "Vanilla Ice Cream", p: 50, img: "https://placehold.co/400x300/e84393/ffffff?text=Vanilla+Ice+Cream"},
+            {n: "Chocolate Ice Cream", p: 60, img: "https://placehold.co/400x300/e84393/ffffff?text=Chocolate+Ice+Cream"},
+            {n: "Strawberry Ice Cream", p: 60, img: "https://placehold.co/400x300/e84393/ffffff?text=Strawberry+Ice+Cream"},
+            {n: "Butterscotch Ice Cream", p: 70, img: "https://placehold.co/400x300/e84393/ffffff?text=Butterscotch+Ice+Cream"},
+            {n: "Mango Ice Cream", p: 60, img: "https://placehold.co/400x300/e84393/ffffff?text=Mango+Ice+Cream"},
+            {n: "Black Currant Ice Cream", p: 70, img: "https://placehold.co/400x300/e84393/ffffff?text=Black+Currant+Ice+Cream"},
+            {n: "Chocolate Chip Ice Cream", p: 80, img: "https://placehold.co/400x300/e84393/ffffff?text=Chocolate+Chip+Ice+Cream"},
+            {n: "Kulfi", p: 50, img: "https://placehold.co/400x300/e84393/ffffff?text=Kulfi"},
+            {n: "Matka Kulfi", p: 70, img: "https://placehold.co/400x300/e84393/ffffff?text=Matka+Kulfi"},
+            {n: "Ice Cream Sundae", p: 120, img: "https://placehold.co/400x300/e84393/ffffff?text=Ice+Cream+Sundae"}
+        ],
+        "Desserts": [
+            {n: "Gulab Jamun", p: 50, img: "https://placehold.co/400x300/d35400/ffffff?text=Gulab+Jamun"},
+            {n: "Rasgulla", p: 50, img: "https://placehold.co/400x300/d35400/ffffff?text=Rasgulla"},
+            {n: "Rasmalai", p: 70, img: "https://placehold.co/400x300/d35400/ffffff?text=Rasmalai"},
+            {n: "Kaju Katli", p: 90, img: "https://placehold.co/400x300/d35400/ffffff?text=Kaju+Katli"},
+            {n: "Gajar Ka Halwa", p: 80, img: "https://placehold.co/400x300/d35400/ffffff?text=Gajar+Ka+Halwa"},
+            {n: "Moong Dal Halwa", p: 90, img: "https://placehold.co/400x300/d35400/ffffff?text=Moong+Dal+Halwa"},
+            {n: "Chocolate Brownie", p: 120, img: "https://placehold.co/400x300/d35400/ffffff?text=Chocolate+Brownie"},
+            {n: "Brownie with Ice Cream", p: 150, img: "https://placehold.co/400x300/d35400/ffffff?text=Brownie+with+Ice+Cream"},
+            {n: "Cheesecake", p: 160, img: "https://placehold.co/400x300/d35400/ffffff?text=Cheesecake"},
+            {n: "Tiramisu", p: 180, img: "https://placehold.co/400x300/d35400/ffffff?text=Tiramisu"}
+        ]
+    };
+
+    // Feature 1 Initializer: Set every item as available by default initially
+    Object.keys(menuData).forEach(cat => {
+        menuData[cat].forEach(item => {
+            if(typeof item.available === 'undefined') item.available = true;
+        });
+    });
+
+    let cart = [];
+    let currentCategory = "Combos & Offers 🎁";
+
+    // UI Logic
+    function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
+    function toggleFav(btn) { btn.classList.toggle('active'); btn.innerText = btn.classList.contains('active') ? "❤️" : "🤍"; }
+    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    // Admin Feature
+    function adminLogin() {
+        if(isAdmin) {
+            isAdmin = false;
+            document.getElementById('adminToggleBtn').innerText = "Admin";
+            alert("Admin Mode Disabled");
+            renderMenu(currentCategory);
+            return;
+        }
+        let id = prompt("Enter Admin ID:");
+        if(id === "delicious") {
+            isAdmin = true;
+            document.getElementById('adminToggleBtn').innerText = "Logout Admin";
+            alert("Admin Access Granted! You can now edit prices and mark items out of stock.");
+            renderMenu(currentCategory);
+        } else if (id) {
+            alert("Incorrect Admin ID!");
+        }
+    }
+
+    function editItemData(itemName) {
+        let foundItem;
+        Object.keys(menuData).forEach(cat => {
+            let it = menuData[cat].find(i => i.n === itemName);
+            if(it) foundItem = it;
+        });
+        if(foundItem) {
+            let newPrice = prompt(`Enter new price for ${foundItem.n} (Current: ₹${foundItem.p}):`, foundItem.p);
+            if(newPrice !== null && !isNaN(newPrice) && newPrice.trim() !== "") {
+                foundItem.p = parseInt(newPrice);
+            }
+            let isAvail = confirm(`Is ${foundItem.n} IN STOCK right now?\n\nPress OK for IN STOCK.\nPress Cancel for OUT OF STOCK.`);
+            foundItem.available = isAvail;
+            
+            // Remove from cart if it was marked out of stock
+            if(!isAvail) {
+                cart = cart.filter(i => i.name !== foundItem.n);
+                updateCartDisplay();
+            }
+            renderMenu(currentCategory);
+        }
+    }
+
+    // Dashboard Feature
+    function openTrackingDashboard() {
+        const list = document.getElementById('tracking-list');
+        list.innerHTML = "";
+        
+        if(myOrderHistory.length === 0) {
+            list.innerHTML = "<p style='text-align:center; padding: 20px;'>You haven't placed any orders yet.</p>";
+        } else {
+            myOrderHistory.forEach(order => {
+                let itemsListHtml = order.items.map(i => `${i.qty}x ${i.name}`).join('<br>');
+                list.innerHTML += `
+                    <div class="order-history-card">
+                        <div class="order-history-header">
+                            <span>Order #${order.id}</span>
+                            <span class="status-badge">${order.status}</span>
+                        </div>
+                        <p style="font-size:0.9rem; margin: 5px 0;">${itemsListHtml}</p>
+                        <p style="font-size:1rem; font-weight:bold; margin: 10px 0 0 0; color:var(--primary);">Total: ₹${order.total}</p>
+                        <p style="font-size:0.8rem; color:#888; margin: 5px 0 0 0;">🕒 ${order.time}</p>
+                    </div>
+                `;
+            });
+        }
+        openModal('trackingModal');
+    }
+
+    // Rendering Logic
+    function renderTabs() {
+        const container = document.getElementById('tabContainer');
+        Object.keys(menuData).forEach((cat, index) => {
+            const btn = document.createElement('button');
+            btn.className = `tab-btn ${index === 0 ? 'active' : ''}`;
+            btn.innerText = cat;
+            btn.onclick = () => renderMenu(cat, btn);
+            container.appendChild(btn);
+        });
+        renderMenu(Object.keys(menuData)[0]); 
+    }
+
+    function renderMenu(category, btnElement = null) {
+        currentCategory = category;
+        if(btnElement) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btnElement.classList.add('active');
+        }
+        displayItems(menuData[category]);
+    }
+
+    function searchMenu() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        if(query === "") { renderMenu(currentCategory); return; }
+        let results = [];
+        Object.values(menuData).forEach(catArray => {
+            catArray.forEach(item => { if(item.n.toLowerCase().includes(query)) results.push(item); });
+        });
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        displayItems(results);
+    }
+
+    function displayItems(items) {
+        const display = document.getElementById('menuDisplay');
+        display.innerHTML = `<div class="grid"></div>`;
+        const grid = display.querySelector('.grid');
+
+        if(items.length === 0) grid.innerHTML = "<p style='grid-column: 1/-1; text-align:center;'>No items found.</p>";
+
+        items.forEach((item, index) => {
+            const badgeHtml = index === 0 ? `<span class="badge">🔥 Best Seller</span>` : '';
+            const outOfStockHtml = !item.available ? `<span class="out-stock-badge">Out of Stock</span>` : '';
+            const imgClass = !item.available ? 'item-img dimmed' : 'item-img';
+            
+            let addBtnHtml = !item.available ? 
+                `<button class="add-btn" disabled>Out of Stock</button>` : 
+                `<button class="add-btn" onclick="addToCart('${item.n}', ${item.p})">+ Add</button>`;
+                
+            let adminBtnHtml = isAdmin ? 
+                `<button class="admin-edit-btn" onclick="editItemData('${item.n}')">✏️ Edit Status/Price</button>` : '';
+
+            grid.innerHTML += `
+                <div class="item-card">
+                    ${badgeHtml}
+                    ${outOfStockHtml}
+                    <button class="fav-btn" onclick="toggleFav(this)">🤍</button>
+                    <img src="${item.img}" alt="${item.n}" class="${imgClass}" loading="lazy">
+                    <div class="item-info">
+                        <h4>${item.n}</h4>
+                        <span class="price">₹${item.p}</span>
+                        ${addBtnHtml}
+                        ${adminBtnHtml}
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    function viewCart() {
+        if(cart.length === 0) return alert("Your cart is empty! Add some delicious food first.");
+        renderModalItems(); 
+        openModal('cartModal');
+    }
+
+    function addToCart(name, price) {
+        let existingItem = cart.find(i => i.name === name);
+        if(existingItem) existingItem.qty++; else cart.push({name, price, qty: 1});
+        updateCartDisplay();
+        if(document.getElementById('cartModal').style.display === 'flex') renderModalItems();
+    }
+
+    function changeQty(index, amount) {
+        cart[index].qty += amount;
+        if(cart[index].qty <= 0) cart.splice(index, 1);
+        updateCartDisplay();
+        if(cart.length === 0) closeModal('cartModal'); else renderModalItems();
+    }
+
+    function updateCartDisplay() {
+        const totalItems = cart.reduce((s, i) => s + i.qty, 0);
+        const totalPrice = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+        document.getElementById('cart-count').innerText = `🛒 ${totalItems} Items`;
+        document.getElementById('cart-total').innerText = `Total: ₹${totalPrice}`;
+        document.getElementById('pay-amount-display').innerText = `₹${totalPrice}`;
+    }
+
+    function renderModalItems() {
+        const list = document.getElementById('cart-items-list');
+        list.innerHTML = "";
+        let total = 0;
+        cart.forEach((item, index) => {
+            let itemTotal = item.price * item.qty;
+            total += itemTotal;
+            list.innerHTML += `
+                <div class="cart-item-row">
+                    <span style="flex: 1;">${item.name} <br><small>₹${item.price} each</small></span>
+                    <div class="qty-controls">
+                        <button class="qty-btn" onclick="changeQty(${index}, -1)">-</button>
+                        <span>${item.qty}</span>
+                        <button class="qty-btn" onclick="changeQty(${index}, 1)">+</button>
+                    </div>
+                    <span style="font-weight:bold; width: 60px; text-align: right;">₹${itemTotal}</span>
+                </div>
+            `;
+        });
+        document.getElementById('modal-total-display').innerText = `Total: ₹${total}`;
+    }
+
+    function proceedToCheckout() { closeModal('cartModal'); openModal('checkoutModal'); }
+    function backToCart() { closeModal('checkoutModal'); openModal('cartModal'); }
+    function proceedToPayment() {
+        if(!document.getElementById('custName').value || !document.getElementById('custPhone').value) {
+            return alert("Please enter Name and Phone Number");
+        }
+        closeModal('checkoutModal'); openModal('paymentModal');
+    }
+    function backToCheckout() { closeModal('paymentModal'); openModal('checkoutModal'); }
+
+    function toggleDeliveryFields() {
+        const type = document.getElementById('orderType').value;
+        document.getElementById('addressGroup').style.display = type === 'Delivery' ? 'block' : 'none';
+    }
+
+    function toggleQR() {
+        const payMode = document.querySelector('input[name="pay_mode"]:checked').value;
+        document.getElementById('qrCodeBox').style.display = payMode === 'UPI' ? 'block' : 'none';
+    }
+
+    function confirmOrder() {
+        const orderId = Math.floor(Math.random() * 900000) + 100000;
+        document.getElementById('genOrderId').innerText = orderId;
+        
+        let total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+        let custName = document.getElementById('custName').value;
+        let custPhone = document.getElementById('custPhone').value;
+        let orderType = document.getElementById('orderType').value;
+        let address = document.getElementById('custAddress').value;
+        let schedule = document.getElementById('scheduleTime').value;
+        let paymentMethod = document.querySelector('input[name="pay_mode"]:checked').value;
+        let notes = document.getElementById('orderNotes').value;
+        
+        let condiments = [];
+        document.querySelectorAll('.condiment:checked').forEach(cb => condiments.push(cb.value));
+        let cutlery = document.getElementById('needCutlery').checked ? "Yes" : "No";
+
+        // Save Order to Dashboard History
+        let newOrder = {
+            id: orderId,
+            items: [...cart], // Deep copy of cart
+            total: total,
+            status: "Order Placed - Preparing",
+            time: new Date().toLocaleString()
+        };
+        myOrderHistory.unshift(newOrder); // Add to top of list
+        localStorage.setItem('cafe_orders', JSON.stringify(myOrderHistory));
+
+        // Simulate SMS notification
+        document.getElementById('smsConfirmText').innerText = `A confirmation SMS receipt has been auto-sent to +91-${custPhone.slice(-10)}`;
+
+        closeModal('paymentModal');
+        openModal('successModal');
+
+        // Compile WhatsApp String
+        let text = `*NEW ORDER: #${orderId}*%0A--------------------%0A`;
+        text += `*Customer:* ${custName} (${custPhone})%0A`;
+        text += `*Type:* ${orderType}%0A`;
+        if(orderType === 'Delivery') text += `*Address:* ${address}%0A`;
+        if(schedule) text += `*Scheduled Time:* ${schedule}%0A`;
+        text += `--------------------%0A*ITEMS:*%0A`;
+        cart.forEach(item => text += `${item.qty}x ${item.name} - ₹${item.price * item.qty}%0A`);
+        text += `--------------------%0A*Grand Total: ₹${total}*%0A*Payment:* ${paymentMethod}%0A`;
+        if(condiments.length > 0) text += `*Condiments:* ${condiments.join(', ')}%0A`;
+        text += `*Cutlery Needed:* ${cutlery}%0A`;
+        if(notes) text += `*Cooking Notes:* ${notes}%0A`;
+        
+        setTimeout(() => {
+            window.open(`https://wa.me/${RESTAURANT_NUMBER}?text=${text}`);
+            cart = []; 
+            updateCartDisplay();
+        }, 2000);
+    }
+
+    renderTabs();
+</script>
+
+</body>
+</html>
