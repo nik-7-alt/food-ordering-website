@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Street Cafe | Order Online</title>
+    <style>
+        :root { 
+            --primary: #e67e22; 
+            --bg-color: #f4f7f6; 
+            --text-color: #2c3e50; 
+            --card-bg: white;
+            --header-bg: white;
+            --border-color: #eee;
+        }
+        
+        .dark-mode {
+            --bg-color: #121212;
+            --text-color: #f4f4f4;
+            --card-bg: #1e1e1e;
+            --header-bg: #1a1a1a;
+            --border-color: #333;
+        }
+
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg-color); color: var(--text-color); padding-bottom: 80px; transition: 0.3s; }
+        
+        header { background: var(--header-bg); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        header h1 { margin: 0; font-size: 1.5rem; color: var(--primary); }
+        .controls { display: flex; gap: 10px; align-items: center; }
+        .theme-btn { background: none; border: 1px solid var(--primary); color: var(--text-color); padding: 5px 10px; border-radius: 20px; cursor: pointer; }
+        .search-bar { padding: 8px 15px; border-radius: 20px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); outline: none; width: 120px; }
+
+        .menu-tabs { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; background: var(--header-bg); padding: 15px 10px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .tab-btn { padding: 8px 14px; border: 1px solid var(--border-color); background: var(--bg-color); border-radius: 20px; font-weight: bold; cursor: pointer; white-space: nowrap; font-size: 0.85rem; color: var(--text-color); transition: 0.2s; }
+        .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        .menu-section { padding: 20px; max-width: 1200px; margin: auto; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; }
+        .item-card { background: var(--card-bg); border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; border: 1px solid var(--border-color); }
+        .item-img { width: 100%; height: 130px; object-fit: cover; border-bottom: 2px solid var(--primary); background: #eee; }
+        .item-info { padding: 12px; display: flex; flex-direction: column; flex-grow: 1; }
+        .item-info h4 { margin: 0 0 5px; font-size: 0.95rem; line-height: 1.3; }
+        .price { color: var(--primary); font-weight: bold; font-size: 1.1rem; margin-bottom: 10px; }
+        .add-btn { background: var(--card-bg); color: var(--primary); border: 2px solid var(--primary); padding: 8px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold; margin-top: auto; transition: 0.2s; }
+        .add-btn:hover { background: var(--primary); color: white; }
+
+        .cart-bar { position: fixed; bottom: 0; width: 100%; background: var(--primary); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; box-sizing: border-box; font-size: 1.1rem; z-index: 90; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 200; justify-content: center; align-items: flex-end; }
+        .modal-content { background: var(--card-bg); color: var(--text-color); width: 100%; max-width: 500px; padding: 20px; border-radius: 20px 20px 0 0; box-sizing: border-box; max-height: 85vh; overflow-y: auto; position: relative; animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: var(--text-color); }
+        .cart-item-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; font-size: 0.95rem; }
+        
+        .qty-controls { display: flex; align-items: center; gap: 10px; }
+        .qty-btn { background: var(--primary); color: white; border: none; border-radius: 5px; width: 25px; height: 25px; cursor: pointer; font-weight: bold; }
+        
+        .order-notes { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-color); color: var(--text-color); margin-bottom: 15px; box-sizing: border-box; font-family: inherit; }
+        .payment-section { margin: 15px 0; background: var(--bg-color); padding: 15px; border-radius: 10px; border: 1px solid var(--border-color); }
+        .payment-section label { display: block; margin-bottom: 10px; font-size: 1rem; cursor: pointer; }
+        .confirm-btn { background: #27ae60; color: white; border: none; width: 100%; padding: 15px; font-size: 1.1rem; border-radius: 10px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>The Street Cafe</h1>
+    <div class="controls">
+        <input type="text" class="search-bar" id="searchInput" placeholder="Search menu..." onkeyup="searchMenu()">
+        <button class="theme-btn" onclick="toggleDarkMode()">🌙</button>
+    </div>
+</header>
+
+<div class="menu-tabs" id="tabContainer"></div>
+<div class="menu-section" id="menuDisplay"></div>
+
+<div class="cart-bar" onclick="toggleCartModal()">
+    <span id="cart-count">🛒 0 Items</span>
+    <span id="cart-total">Total: ₹0</span>
+    <strong>Review Order ➔</strong>
+</div>
+
+<div class="modal-overlay" id="cartModal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="toggleCartModal()">✖</span>
+        <h2 style="margin-top: 0;">Review Order</h2>
+        <div id="cart-items-list" style="margin-bottom: 15px;"></div>
+        <h3 id="modal-total-display" style="color: var(--primary); text-align: right; border-top: 2px solid var(--border-color); padding-top: 10px;">Total: ₹0</h3>
+        <textarea id="orderNotes" class="order-notes" rows="2" placeholder="Any special requests? (e.g. Extra spicy)"></textarea>
+        
+        <div class="payment-section">
+            <h4 style="margin-top: 0;">Payment Method:</h4>
+            <label><input type="radio" name="pay_mode" value="UPI" checked> UPI (GPay/PhonePe)</label>
+            <label><input type="radio" name="pay_mode" value="Cash"> Cash on Delivery/Pickup</label>
+            <label><input type="radio" name="pay_mode" value="Card"> Card at Restaurant</label>
+        </div>
+        
+        <button class="confirm-btn" onclick="sendOrderViaWhatsApp()">Confirm & Send Order</button>
+    </div>
+</div>
+
+<script>
+    const RESTAURANT_NUMBER = "919876543210"; 
+
+    // The data is now clean. The images will be dynamically generated based on the item name!
+    const menuData = {
+        "Breakfast": [
+            {n: "Plain Dosa", p: 30}, {n: "Masala Dosa", p: 50}, {n: "Cheese Dosa", p: 70},
+            {n: "Onion Dosa", p: 40}, {n: "Rava Dosa", p: 50}, {n: "Mysore Dosa", p: 60},
+            {n: "Paper Dosa", p: 40}, {n: "Neer Dosa", p: 40}, {n: "Adai Dosa", p: 60},
+            {n: "Ghee Roast Dosa", p: 80}, {n: "Plain Idli", p: 10}, {n: "Rava Idli", p: 30},
+            {n: "Mini Idli", p: 15}, {n: "Stuffed Idli", p: 40}, {n: "Sambar Idli", p: 40},
+            {n: "Rice Idli", p: 10}, {n: "Millet Idli", p: 30}, {n: "Pongal", p: 40},
+            {n: "Plain Uttapam", p: 50}, {n: "Vegetable Uttapam", p: 60}
+        ],
+        "Upma Varieties": [
+            {n: "Classic Upma", p: 30}, {n: "Rava Upma", p: 30}, {n: "Vegetable Upma", p: 40},
+            {n: "Oats Upma", p: 40}, {n: "Millet Upma", p: 40}, {n: "Quinoa Upma", p: 50},
+            {n: "Tomato Upma", p: 40}, {n: "Onion Upma", p: 40}, {n: "Spicy Upma", p: 40},
+            {n: "Upma with Nuts", p: 50}
+        ],
+        "Lunch": [
+            {n: "Veg Thali", p: 120}, {n: "Special Veg Thali", p: 150}, {n: "Dal Rice", p: 80},
+            {n: "Rajma Rice", p: 100}, {n: "Chole Rice", p: 100}, {n: "Curd Rice", p: 70},
+            {n: "Lemon Rice", p: 70}, {n: "Veg Biryani", p: 120}, {n: "Paneer Biryani", p: 160},
+            {n: "Chicken Biryani", p: 180}, {n: "Egg Biryani", p: 150}, {n: "Hyderabadi Biryani", p: 200},
+            {n: "Vegetable Pulao", p: 100}, {n: "Jeera Rice", p: 90}, {n: "Fried Rice", p: 100}
+        ],
+        "Dinner": [
+            {n: "Butter Chicken", p: 220}, {n: "Chicken Curry", p: 200}, {n: "Tandoori Chicken", p: 220},
+            {n: "Fish Curry", p: 220}, {n: "Mutton Curry", p: 260}, {n: "Paneer Butter Masala", p: 180},
+            {n: "Kadai Paneer", p: 170}, {n: "Palak Paneer", p: 170}, {n: "Mix Veg Curry", p: 140},
+            {n: "Dal Makhani", p: 140}, {n: "Butter Naan", p: 40}, {n: "Garlic Naan", p: 50},
+            {n: "Plain Naan", p: 35}, {n: "Tandoori Roti", p: 20}, {n: "Butter Roti", p: 25}
+        ],
+        "Chinese": [
+            {n: "Veg Fried Rice", p: 100}, {n: "Chicken Fried Rice", p: 140}, {n: "Schezwan Fried Rice", p: 120},
+            {n: "Veg Noodles", p: 100}, {n: "Chicken Noodles", p: 140}, {n: "Schezwan Noodles", p: 120},
+            {n: "Veg Manchurian", p: 120}, {n: "Chicken Manchurian", p: 160}, {n: "Chilli Paneer", p: 150},
+            {n: "Chilli Chicken", p: 180}, {n: "Veg Momos", p: 80}, {n: "Chicken Momos", p: 120},
+            {n: "Spring Rolls", p: 100}, {n: "Hot & Sour Soup", p: 90}, {n: "Sweet Corn Soup", p: 80}
+        ],
+        "Italian": [
+            {n: "Margherita Pizza", p: 120}, {n: "Farmhouse Pizza", p: 180}, {n: "Paneer Pizza", p: 170},
+            {n: "Veggie Pizza", p: 150}, {n: "Cheese Burst Pizza", p: 200}, {n: "White Sauce Pasta", p: 120},
+            {n: "Red Sauce Pasta", p: 120}, {n: "Pink Sauce Pasta", p: 140}, {n: "Garlic Bread", p: 80},
+            {n: "Cheese Garlic Bread", p: 100}, {n: "Lasagna", p: 180}, {n: "Spaghetti", p: 150}
+        ],
+        "Street Food": [
+            {n: "Pani Puri", p: 30}, {n: "Bhel Puri", p: 40}, {n: "Sev Puri", p: 40},
+            {n: "Vada Pav", p: 30}, {n: "Samosa", p: 20}, {n: "Aloo Tikki", p: 40},
+            {n: "Pav Bhaji", p: 60}, {n: "Misal Pav", p: 60}, {n: "Egg Roll", p: 50},
+            {n: "Kathi Roll", p: 60}, {n: "Frankie Roll", p: 60}
+        ],
+        "Snacks": [
+            {n: "French Fries", p: 80}, {n: "Masala Fries", p: 100}, {n: "Veg Sandwich", p: 60},
+            {n: "Grilled Sandwich", p: 80}, {n: "Paneer Sandwich", p: 100}, {n: "Veg Cutlet", p: 40},
+            {n: "Onion Pakoda", p: 40}, {n: "Paneer Pakoda", p: 80}, {n: "Onion Rings", p: 80},
+            {n: "Popcorn", p: 60}
+        ],
+        "Juices": [
+            {n: "Orange Juice", p: 50}, {n: "Watermelon Juice", p: 50}, {n: "Mango Juice", p: 60},
+            {n: "Pineapple Juice", p: 60}, {n: "Mosambi Juice", p: 50}, {n: "Pomegranate Juice", p: 70},
+            {n: "Sugarcane Juice", p: 40}
+        ],
+        "Smoothies": [
+            {n: "Mango Smoothie", p: 80}, {n: "Banana Smoothie", p: 70}, {n: "Strawberry Smoothie", p: 90},
+            {n: "Chocolate Smoothie", p: 100}, {n: "Peanut Butter Smoothie", p: 110}, {n: "Mixed Berry Smoothie", p: 120}
+        ],
+        "Mocktails": [
+            {n: "Virgin Mojito", p: 120}, {n: "Blue Lagoon", p: 130}, {n: "Strawberry Mojito", p: 130},
+            {n: "Green Apple Mojito", p: 130}, {n: "Pineapple Mint Cooler", p: 120}, {n: "Watermelon Cooler", p: 110},
+            {n: "Cranberry Fizz", p: 140}, {n: "Mint Lemonade", p: 100}, {n: "Fruit Punch", p: 150},
+            {n: "Orange Sunset", p: 120}
+        ],
+        "Soups": [
+            {n: "Tomato Soup", p: 80}, {n: "Sweet Corn Soup", p: 80}, {n: "Hot & Sour Soup", p: 90},
+            {n: "Manchow Soup", p: 90}, {n: "Veg Clear Soup", p: 70}, {n: "Chicken Clear Soup", p: 100},
+            {n: "Chicken Manchow Soup", p: 110}, {n: "Mushroom Soup", p: 100}, {n: "Lemon Coriander Soup", p: 90},
+            {n: "Cream of Tomato Soup", p: 90}
+        ],
+        "Ice Cream": [
+            {n: "Vanilla Ice Cream", p: 50}, {n: "Chocolate Ice Cream", p: 60}, {n: "Strawberry Ice Cream", p: 60},
+            {n: "Butterscotch Ice Cream", p: 70}, {n: "Mango Ice Cream", p: 60}, {n: "Black Currant Ice Cream", p: 70},
+            {n: "Chocolate Chip Ice Cream", p: 80}, {n: "Kulfi", p: 50}, {n: "Matka Kulfi", p: 70},
+            {n: "Ice Cream Sundae", p: 120}
+        ],
+        "Desserts": [
+            {n: "Gulab Jamun", p: 50}, {n: "Rasgulla", p: 50}, {n: "Rasmalai", p: 70},
+            {n: "Kaju Katli", p: 90}, {n: "Gajar Ka Halwa", p: 80}, {n: "Moong Dal Halwa", p: 90},
+            {n: "Chocolate Brownie", p: 120}, {n: "Brownie with Ice Cream", p: 150}, {n: "Cheesecake", p: 160},
+            {n: "Tiramisu", p: 180}
+        ]
+    };
+
+    let cart = [];
+    let currentCategory = "Breakfast";
+
+    function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
+
+    function renderTabs() {
+        const container = document.getElementById('tabContainer');
+        Object.keys(menuData).forEach((cat, index) => {
+            const btn = document.createElement('button');
+            btn.className = `tab-btn ${index === 0 ? 'active' : ''}`;
+            btn.innerText = cat;
+            btn.onclick = () => renderMenu(cat, btn);
+            container.appendChild(btn);
+        });
+        renderMenu(Object.keys(menuData)[0]); 
+    }
+
+    function renderMenu(category, btnElement = null) {
+        currentCategory = category;
+        if(btnElement) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btnElement.classList.add('active');
+        }
+        displayItems(menuData[category]);
+    }
+
+    function searchMenu() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        if(query === "") { renderMenu(currentCategory); return; }
+        
+        let results = [];
+        Object.values(menuData).forEach(catArray => {
+            catArray.forEach(item => {
+                if(item.n.toLowerCase().includes(query)) results.push(item);
+            });
+        });
+        
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        displayItems(results);
+    }
+
+    function displayItems(items) {
+        const display = document.getElementById('menuDisplay');
+        display.innerHTML = `<div class="grid"></div>`;
+        const grid = display.querySelector('.grid');
+
+        if(items.length === 0) grid.innerHTML = "<p style='grid-column: 1/-1; text-align:center;'>No items found.</p>";
+
+        items.forEach(item => {
+            // Dynamically generating a unique placeholder image with the exact food name!
+            const uniqueImgUrl = `https://placehold.co/400x300/e67e22/ffffff?text=${encodeURIComponent(item.n)}`;
+            
+            grid.innerHTML += `
+                <div class="item-card">
+                    <img src="${uniqueImgUrl}" alt="${item.n}" class="item-img" loading="lazy">
+                    <div class="item-info">
+                        <h4>${item.n}</h4>
+                        <span class="price">₹${item.p}</span>
+                        <button class="add-btn" onclick="addToCart('${item.n}', ${item.p})">+ Add</button>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    function addToCart(name, price) {
+        let existingItem = cart.find(i => i.name === name);
+        if(existingItem) {
+            existingItem.qty++;
+        } else {
+            cart.push({name, price, qty: 1});
+        }
+        updateCartDisplay();
+    }
+
+    function changeQty(index, amount) {
+        cart[index].qty += amount;
+        if(cart[index].qty <= 0) cart.splice(index, 1);
+        updateCartDisplay();
+        renderModalItems();
+    }
+
+    function updateCartDisplay() {
+        const totalItems = cart.reduce((s, i) => s + i.qty, 0);
+        const totalPrice = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+        document.getElementById('cart-count').innerText = `🛒 ${totalItems} Items`;
+        document.getElementById('cart-total').innerText = `Total: ₹${totalPrice}`;
+    }
+
+    function toggleCartModal() {
+        const modal = document.getElementById('cartModal');
+        if (modal.style.display === "flex") {
+            modal.style.display = "none";
+        } else {
+            if(cart.length === 0) return alert("Your cart is empty! Add some delicious food first.");
+            renderModalItems();
+            modal.style.display = "flex";
+        }
+    }
+
+    function renderModalItems() {
+        const list = document.getElementById('cart-items-list');
+        list.innerHTML = "";
+        let total = 0;
+        
+        cart.forEach((item, index) => {
+            let itemTotal = item.price * item.qty;
+            total += itemTotal;
+            list.innerHTML += `
+                <div class="cart-item-row">
+                    <span style="flex: 1;">${item.name} <br><small>₹${item.price} each</small></span>
+                    <div class="qty-controls">
+                        <button class="qty-btn" onclick="changeQty(${index}, -1)">-</button>
+                        <span>${item.qty}</span>
+                        <button class="qty-btn" onclick="changeQty(${index}, 1)">+</button>
+                    </div>
+                    <span style="font-weight:bold; width: 60px; text-align: right;">₹${itemTotal}</span>
+                </div>
+            `;
+        });
+        
+        document.getElementById('modal-total-display').innerText = `Total to Pay: ₹${total}`;
+        if(cart.length === 0) toggleCartModal();
+    }
+
+    function sendOrderViaWhatsApp() {
+        let total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
+        let paymentMethod = document.querySelector('input[name="pay_mode"]:checked').value;
+        let notes = document.getElementById('orderNotes').value;
+        
+        let text = "*NEW CAFE ORDER*%0A--------------------%0A";
+        cart.forEach(item => text += `${item.qty}x ${item.name} - ₹${item.price * item.qty}%0A`);
+        text += `--------------------%0A*Grand Total: ₹${total}*%0A%0A*Payment:* ${paymentMethod}%0A`;
+        if(notes) text += `*Notes:* ${notes}%0A`;
+        text += `Please confirm my order!`;
+        
+        window.open(`https://wa.me/${RESTAURANT_NUMBER}?text=${text}`); 
+        toggleCartModal(); 
+    }
+
+    renderTabs();
+</script>
+
+</body>
+</html>
