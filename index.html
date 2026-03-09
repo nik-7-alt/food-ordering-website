@@ -197,7 +197,7 @@
             <span style="font-size: 1.2rem;">📱</span> <strong id="smsConfirmText" style="color: #16a085; font-size: 0.9rem;"></strong>
         </div>
 
-        <p style="font-size: 0.9rem;">Opening WhatsApp to alert the kitchen...</p>
+        <p style="font-size: 0.9rem;" id="sendingStatusText">Sending order details via SMS...</p>
 
         <div class="tracking-bar">
             <div class="track-step active"><div class="track-dot">1</div><span>Placed</span></div>
@@ -672,24 +672,42 @@
         closeModal('paymentModal');
         openModal('successModal');
 
-        // Compile WhatsApp String
-        let text = `*NEW ORDER: #${orderId}*%0A--------------------%0A`;
-        text += `*Customer:* ${custName} (${custPhone})%0A`;
-        text += `*Type:* ${orderType}%0A`;
-        if(orderType === 'Delivery') text += `*Address:* ${address}%0A`;
-        if(schedule) text += `*Scheduled Time:* ${schedule}%0A`;
-        text += `--------------------%0A*ITEMS:*%0A`;
-        cart.forEach(item => text += `${item.qty}x ${item.name} - ₹${item.price * item.qty}%0A`);
-        text += `--------------------%0A*Grand Total: ₹${total}*%0A*Payment:* ${paymentMethod}%0A`;
-        if(condiments.length > 0) text += `*Condiments:* ${condiments.join(', ')}%0A`;
-        text += `*Cutlery Needed:* ${cutlery}%0A`;
-        if(notes) text += `*Cooking Notes:* ${notes}%0A`;
+        // Compile SMS String
+        let text = `NEW ORDER: #${orderId}\n--------------------\n`;
+        text += `Customer: ${custName} (${custPhone})\n`;
+        text += `Type: ${orderType}\n`;
+        if(orderType === 'Delivery') text += `Address: ${address}\n`;
+        if(schedule) text += `Scheduled Time: ${schedule}\n`;
+        text += `--------------------\nITEMS:\n`;
+        cart.forEach(item => text += `${item.qty}x ${item.name} - ₹${item.price * item.qty}\n`);
+        text += `--------------------\nGrand Total: ₹${total}\nPayment: ${paymentMethod}\n`;
+        if(condiments.length > 0) text += `Condiments: ${condiments.join(', ')}\n`;
+        text += `Cutlery Needed: ${cutlery}\n`;
+        if(notes) text += `Cooking Notes: ${notes}\n`;
         
-        setTimeout(() => {
-            window.open(`https://wa.me/${RESTAURANT_NUMBER}?text=${text}`);
+        fetch('https://textbelt.com/text', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                phone: custPhone,
+                message: text,
+                key: 'textbelt'
+            }),
+        }).then(response => {
+            return response.json();
+        }).then(data => {
+            if(data.success) {
+                document.getElementById('sendingStatusText').innerText = "SMS Alert Sent Successfully!";
+            } else {
+                document.getElementById('sendingStatusText').innerText = "Failed to send SMS: " + data.error;
+            }
+        }).catch(err => {
+            document.getElementById('sendingStatusText').innerText = "Failed to send SMS.";
+            console.error(err);
+        }).finally(() => {
             cart = []; 
             updateCartDisplay();
-        }, 2000);
+        });
     }
 
     renderTabs();
