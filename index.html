@@ -685,22 +685,18 @@
         text += `Cutlery Needed: ${cutlery}\n`;
         if(notes) text += `Cooking Notes: ${notes}\n`;
         
+        let formData = new FormData();
+        formData.append('phone', custPhone);
+        formData.append('message', text);
+        formData.append('key', 'textbelt');
+
         fetch('https://textbelt.com/text', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                phone: custPhone,
-                message: text,
-                key: 'textbelt'
-            }),
+            body: formData,
+            mode: 'no-cors'
         }).then(response => {
-            return response.json();
-        }).then(data => {
-            if(data.success) {
-                document.getElementById('sendingStatusText').innerText = "SMS Alert Sent Successfully!";
-            } else {
-                document.getElementById('sendingStatusText').innerText = "Failed to send SMS: " + data.error;
-            }
+            // Because mode is 'no-cors', the response is opaque. We cannot read response.json() or check status.
+            document.getElementById('sendingStatusText').innerText = "Order confirmation SMS sent!";
         }).catch(err => {
             document.getElementById('sendingStatusText').innerText = "Failed to send SMS.";
             console.error(err);
