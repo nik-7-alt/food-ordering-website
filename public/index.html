@@ -214,212 +214,24 @@
     
     // Feature 3: Admin State & Order Memory
     let isAdmin = false;
-    let myOrderHistory = JSON.parse(localStorage.getItem('cafe_orders')) || [];
+    let myOrderHistory = [];
 
     // Base Data
-    const menuData = {
-        "Combos & Offers 🎁": [
-            {n: "Family Pizza Combo", p: 499, img: "https://placehold.co/400x300/27ae60/ffffff?text=Family+Pizza+Combo"},
-            {n: "Breakfast Mega Saver", p: 149, img: "https://placehold.co/400x300/27ae60/ffffff?text=Breakfast+Mega+Saver"},
-            {n: "Student Biryani Meal", p: 199, img: "https://placehold.co/400x300/27ae60/ffffff?text=Student+Biryani+Meal"}
-        ],
-        "Breakfast": [
-            {n: "Plain Dosa", p: 30, img: "https://placehold.co/400x300/e67e22/ffffff?text=Plain+Dosa"},
-            {n: "Masala Dosa", p: 50, img: "https://placehold.co/400x300/e67e22/ffffff?text=Masala+Dosa"},
-            {n: "Cheese Dosa", p: 70, img: "https://placehold.co/400x300/e67e22/ffffff?text=Cheese+Dosa"},
-            {n: "Onion Dosa", p: 40, img: "https://placehold.co/400x300/e67e22/ffffff?text=Onion+Dosa"},
-            {n: "Rava Dosa", p: 50, img: "https://placehold.co/400x300/e67e22/ffffff?text=Rava+Dosa"},
-            {n: "Mysore Dosa", p: 60, img: "https://placehold.co/400x300/e67e22/ffffff?text=Mysore+Dosa"},
-            {n: "Paper Dosa", p: 40, img: "https://placehold.co/400x300/e67e22/ffffff?text=Paper+Dosa"},
-            {n: "Neer Dosa", p: 40, img: "https://placehold.co/400x300/e67e22/ffffff?text=Neer+Dosa"},
-            {n: "Adai Dosa", p: 60, img: "https://placehold.co/400x300/e67e22/ffffff?text=Adai+Dosa"},
-            {n: "Ghee Roast Dosa", p: 80, img: "https://placehold.co/400x300/e67e22/ffffff?text=Ghee+Roast+Dosa"},
-            {n: "Plain Idli", p: 10, img: "https://placehold.co/400x300/e67e22/ffffff?text=Plain+Idli"},
-            {n: "Rava Idli", p: 30, img: "https://placehold.co/400x300/e67e22/ffffff?text=Rava+Idli"},
-            {n: "Mini Idli", p: 15, img: "https://placehold.co/400x300/e67e22/ffffff?text=Mini+Idli"},
-            {n: "Stuffed Idli", p: 40, img: "https://placehold.co/400x300/e67e22/ffffff?text=Stuffed+Idli"},
-            {n: "Sambar Idli", p: 40, img: "https://placehold.co/400x300/e67e22/ffffff?text=Sambar+Idli"},
-            {n: "Rice Idli", p: 10, img: "https://placehold.co/400x300/e67e22/ffffff?text=Rice+Idli"},
-            {n: "Millet Idli", p: 30, img: "https://placehold.co/400x300/e67e22/ffffff?text=Millet+Idli"},
-            {n: "Pongal", p: 40, img: "https://placehold.co/400x300/e67e22/ffffff?text=Pongal"},
-            {n: "Plain Uttapam", p: 50, img: "https://placehold.co/400x300/e67e22/ffffff?text=Plain+Uttapam"},
-            {n: "Vegetable Uttapam", p: 60, img: "https://placehold.co/400x300/e67e22/ffffff?text=Vegetable+Uttapam"}
-        ],
-        "Upma Varieties": [
-            {n: "Classic Upma", p: 30, img: "https://placehold.co/400x300/f39c12/ffffff?text=Classic+Upma"},
-            {n: "Rava Upma", p: 30, img: "https://placehold.co/400x300/f39c12/ffffff?text=Rava+Upma"},
-            {n: "Vegetable Upma", p: 40, img: "https://placehold.co/400x300/f39c12/ffffff?text=Vegetable+Upma"},
-            {n: "Oats Upma", p: 40, img: "https://placehold.co/400x300/f39c12/ffffff?text=Oats+Upma"},
-            {n: "Millet Upma", p: 40, img: "https://placehold.co/400x300/f39c12/ffffff?text=Millet+Upma"},
-            {n: "Quinoa Upma", p: 50, img: "https://placehold.co/400x300/f39c12/ffffff?text=Quinoa+Upma"},
-            {n: "Tomato Upma", p: 40, img: "https://placehold.co/400x300/f39c12/ffffff?text=Tomato+Upma"},
-            {n: "Onion Upma", p: 40, img: "https://placehold.co/400x300/f39c12/ffffff?text=Onion+Upma"},
-            {n: "Spicy Upma", p: 40, img: "https://placehold.co/400x300/f39c12/ffffff?text=Spicy+Upma"},
-            {n: "Upma with Nuts", p: 50, img: "https://placehold.co/400x300/f39c12/ffffff?text=Upma+with+Nuts"}
-        ],
-        "Lunch": [
-            {n: "Veg Thali", p: 120, img: "https://placehold.co/400x300/c0392b/ffffff?text=Veg+Thali"},
-            {n: "Special Veg Thali", p: 150, img: "https://placehold.co/400x300/c0392b/ffffff?text=Special+Veg+Thali"},
-            {n: "Dal Rice", p: 80, img: "https://placehold.co/400x300/c0392b/ffffff?text=Dal+Rice"},
-            {n: "Rajma Rice", p: 100, img: "https://placehold.co/400x300/c0392b/ffffff?text=Rajma+Rice"},
-            {n: "Chole Rice", p: 100, img: "https://placehold.co/400x300/c0392b/ffffff?text=Chole+Rice"},
-            {n: "Curd Rice", p: 70, img: "https://placehold.co/400x300/c0392b/ffffff?text=Curd+Rice"},
-            {n: "Lemon Rice", p: 70, img: "https://placehold.co/400x300/c0392b/ffffff?text=Lemon+Rice"},
-            {n: "Veg Biryani", p: 120, img: "https://placehold.co/400x300/c0392b/ffffff?text=Veg+Biryani"},
-            {n: "Paneer Biryani", p: 160, img: "https://placehold.co/400x300/c0392b/ffffff?text=Paneer+Biryani"},
-            {n: "Chicken Biryani", p: 180, img: "https://placehold.co/400x300/c0392b/ffffff?text=Chicken+Biryani"},
-            {n: "Egg Biryani", p: 150, img: "https://placehold.co/400x300/c0392b/ffffff?text=Egg+Biryani"},
-            {n: "Hyderabadi Biryani", p: 200, img: "https://placehold.co/400x300/c0392b/ffffff?text=Hyderabadi+Biryani"},
-            {n: "Vegetable Pulao", p: 100, img: "https://placehold.co/400x300/c0392b/ffffff?text=Vegetable+Pulao"},
-            {n: "Jeera Rice", p: 90, img: "https://placehold.co/400x300/c0392b/ffffff?text=Jeera+Rice"},
-            {n: "Fried Rice", p: 100, img: "https://placehold.co/400x300/c0392b/ffffff?text=Fried+Rice"}
-        ],
-        "Dinner": [
-            {n: "Butter Chicken", p: 220, img: "https://placehold.co/400x300/d35400/ffffff?text=Butter+Chicken"},
-            {n: "Chicken Curry", p: 200, img: "https://placehold.co/400x300/d35400/ffffff?text=Chicken+Curry"},
-            {n: "Tandoori Chicken", p: 220, img: "https://placehold.co/400x300/d35400/ffffff?text=Tandoori+Chicken"},
-            {n: "Fish Curry", p: 220, img: "https://placehold.co/400x300/d35400/ffffff?text=Fish+Curry"},
-            {n: "Mutton Curry", p: 260, img: "https://placehold.co/400x300/d35400/ffffff?text=Mutton+Curry"},
-            {n: "Paneer Butter Masala", p: 180, img: "https://placehold.co/400x300/d35400/ffffff?text=Paneer+Butter+Masala"},
-            {n: "Kadai Paneer", p: 170, img: "https://placehold.co/400x300/d35400/ffffff?text=Kadai+Paneer"},
-            {n: "Palak Paneer", p: 170, img: "https://placehold.co/400x300/d35400/ffffff?text=Palak+Paneer"},
-            {n: "Mix Veg Curry", p: 140, img: "https://placehold.co/400x300/d35400/ffffff?text=Mix+Veg+Curry"},
-            {n: "Dal Makhani", p: 140, img: "https://placehold.co/400x300/d35400/ffffff?text=Dal+Makhani"},
-            {n: "Butter Naan", p: 40, img: "https://placehold.co/400x300/d35400/ffffff?text=Butter+Naan"},
-            {n: "Garlic Naan", p: 50, img: "https://placehold.co/400x300/d35400/ffffff?text=Garlic+Naan"},
-            {n: "Plain Naan", p: 35, img: "https://placehold.co/400x300/d35400/ffffff?text=Plain+Naan"},
-            {n: "Tandoori Roti", p: 20, img: "https://placehold.co/400x300/d35400/ffffff?text=Tandoori+Roti"},
-            {n: "Butter Roti", p: 25, img: "https://placehold.co/400x300/d35400/ffffff?text=Butter+Roti"}
-        ],
-        "Chinese": [
-            {n: "Veg Fried Rice", p: 100, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Veg+Fried+Rice"},
-            {n: "Chicken Fried Rice", p: 140, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Chicken+Fried+Rice"},
-            {n: "Schezwan Fried Rice", p: 120, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Schezwan+Fried+Rice"},
-            {n: "Veg Noodles", p: 100, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Veg+Noodles"},
-            {n: "Chicken Noodles", p: 140, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Chicken+Noodles"},
-            {n: "Schezwan Noodles", p: 120, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Schezwan+Noodles"},
-            {n: "Veg Manchurian", p: 120, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Veg+Manchurian"},
-            {n: "Chicken Manchurian", p: 160, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Chicken+Manchurian"},
-            {n: "Chilli Paneer", p: 150, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Chilli+Paneer"},
-            {n: "Chilli Chicken", p: 180, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Chilli+Chicken"},
-            {n: "Veg Momos", p: 80, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Veg+Momos"},
-            {n: "Chicken Momos", p: 120, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Chicken+Momos"},
-            {n: "Spring Rolls", p: 100, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Spring+Rolls"},
-            {n: "Hot & Sour Soup", p: 90, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Hot+%26+Sour+Soup"},
-            {n: "Sweet Corn Soup", p: 80, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Sweet+Corn+Soup"}
-        ],
-        "Italian": [
-            {n: "Margherita Pizza", p: 120, img: "https://placehold.co/400x300/c0392b/ffffff?text=Margherita+Pizza"},
-            {n: "Farmhouse Pizza", p: 180, img: "https://placehold.co/400x300/c0392b/ffffff?text=Farmhouse+Pizza"},
-            {n: "Paneer Pizza", p: 170, img: "https://placehold.co/400x300/c0392b/ffffff?text=Paneer+Pizza"},
-            {n: "Veggie Pizza", p: 150, img: "https://placehold.co/400x300/c0392b/ffffff?text=Veggie+Pizza"},
-            {n: "Cheese Burst Pizza", p: 200, img: "https://placehold.co/400x300/c0392b/ffffff?text=Cheese+Burst+Pizza"},
-            {n: "White Sauce Pasta", p: 120, img: "https://placehold.co/400x300/c0392b/ffffff?text=White+Sauce+Pasta"},
-            {n: "Red Sauce Pasta", p: 120, img: "https://placehold.co/400x300/c0392b/ffffff?text=Red+Sauce+Pasta"},
-            {n: "Pink Sauce Pasta", p: 140, img: "https://placehold.co/400x300/c0392b/ffffff?text=Pink+Sauce+Pasta"},
-            {n: "Garlic Bread", p: 80, img: "https://placehold.co/400x300/c0392b/ffffff?text=Garlic+Bread"},
-            {n: "Cheese Garlic Bread", p: 100, img: "https://placehold.co/400x300/c0392b/ffffff?text=Cheese+Garlic+Bread"},
-            {n: "Lasagna", p: 180, img: "https://placehold.co/400x300/c0392b/ffffff?text=Lasagna"},
-            {n: "Spaghetti", p: 150, img: "https://placehold.co/400x300/c0392b/ffffff?text=Spaghetti"}
-        ],
-        "Street Food": [
-            {n: "Pani Puri", p: 30, img: "https://placehold.co/400x300/16a085/ffffff?text=Pani+Puri"},
-            {n: "Bhel Puri", p: 40, img: "https://placehold.co/400x300/16a085/ffffff?text=Bhel+Puri"},
-            {n: "Sev Puri", p: 40, img: "https://placehold.co/400x300/16a085/ffffff?text=Sev+Puri"},
-            {n: "Vada Pav", p: 30, img: "https://placehold.co/400x300/16a085/ffffff?text=Vada+Pav"},
-            {n: "Samosa", p: 20, img: "https://placehold.co/400x300/16a085/ffffff?text=Samosa"},
-            {n: "Aloo Tikki", p: 40, img: "https://placehold.co/400x300/16a085/ffffff?text=Aloo+Tikki"},
-            {n: "Pav Bhaji", p: 60, img: "https://placehold.co/400x300/16a085/ffffff?text=Pav+Bhaji"},
-            {n: "Misal Pav", p: 60, img: "https://placehold.co/400x300/16a085/ffffff?text=Misal+Pav"},
-            {n: "Egg Roll", p: 50, img: "https://placehold.co/400x300/16a085/ffffff?text=Egg+Roll"},
-            {n: "Kathi Roll", p: 60, img: "https://placehold.co/400x300/16a085/ffffff?text=Kathi+Roll"},
-            {n: "Frankie Roll", p: 60, img: "https://placehold.co/400x300/16a085/ffffff?text=Frankie+Roll"}
-        ],
-        "Snacks": [
-            {n: "French Fries", p: 80, img: "https://placehold.co/400x300/f39c12/ffffff?text=French+Fries"},
-            {n: "Masala Fries", p: 100, img: "https://placehold.co/400x300/f39c12/ffffff?text=Masala+Fries"},
-            {n: "Veg Sandwich", p: 60, img: "https://placehold.co/400x300/f39c12/ffffff?text=Veg+Sandwich"},
-            {n: "Grilled Sandwich", p: 80, img: "https://placehold.co/400x300/f39c12/ffffff?text=Grilled+Sandwich"},
-            {n: "Paneer Sandwich", p: 100, img: "https://placehold.co/400x300/f39c12/ffffff?text=Paneer+Sandwich"},
-            {n: "Veg Cutlet", p: 40, img: "https://placehold.co/400x300/f39c12/ffffff?text=Veg+Cutlet"},
-            {n: "Onion Pakoda", p: 40, img: "https://placehold.co/400x300/f39c12/ffffff?text=Onion+Pakoda"},
-            {n: "Paneer Pakoda", p: 80, img: "https://placehold.co/400x300/f39c12/ffffff?text=Paneer+Pakoda"},
-            {n: "Onion Rings", p: 80, img: "https://placehold.co/400x300/f39c12/ffffff?text=Onion+Rings"},
-            {n: "Popcorn", p: 60, img: "https://placehold.co/400x300/f39c12/ffffff?text=Popcorn"}
-        ],
-        "Juices": [
-            {n: "Orange Juice", p: 50, img: "https://placehold.co/400x300/2980b9/ffffff?text=Orange+Juice"},
-            {n: "Watermelon Juice", p: 50, img: "https://placehold.co/400x300/2980b9/ffffff?text=Watermelon+Juice"},
-            {n: "Mango Juice", p: 60, img: "https://placehold.co/400x300/2980b9/ffffff?text=Mango+Juice"},
-            {n: "Pineapple Juice", p: 60, img: "https://placehold.co/400x300/2980b9/ffffff?text=Pineapple+Juice"},
-            {n: "Mosambi Juice", p: 50, img: "https://placehold.co/400x300/2980b9/ffffff?text=Mosambi+Juice"},
-            {n: "Pomegranate Juice", p: 70, img: "https://placehold.co/400x300/2980b9/ffffff?text=Pomegranate+Juice"},
-            {n: "Sugarcane Juice", p: 40, img: "https://placehold.co/400x300/2980b9/ffffff?text=Sugarcane+Juice"}
-        ],
-        "Smoothies": [
-            {n: "Mango Smoothie", p: 80, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Mango+Smoothie"},
-            {n: "Banana Smoothie", p: 70, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Banana+Smoothie"},
-            {n: "Strawberry Smoothie", p: 90, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Strawberry+Smoothie"},
-            {n: "Chocolate Smoothie", p: 100, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Chocolate+Smoothie"},
-            {n: "Peanut Butter Smoothie", p: 110, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Peanut+Butter+Smoothie"},
-            {n: "Mixed Berry Smoothie", p: 120, img: "https://placehold.co/400x300/8e44ad/ffffff?text=Mixed+Berry+Smoothie"}
-        ],
-        "Mocktails": [
-            {n: "Virgin Mojito", p: 120, img: "https://placehold.co/400x300/16a085/ffffff?text=Virgin+Mojito"},
-            {n: "Blue Lagoon", p: 130, img: "https://placehold.co/400x300/16a085/ffffff?text=Blue+Lagoon"},
-            {n: "Strawberry Mojito", p: 130, img: "https://placehold.co/400x300/16a085/ffffff?text=Strawberry+Mojito"},
-            {n: "Green Apple Mojito", p: 130, img: "https://placehold.co/400x300/16a085/ffffff?text=Green+Apple+Mojito"},
-            {n: "Pineapple Mint Cooler", p: 120, img: "https://placehold.co/400x300/16a085/ffffff?text=Pineapple+Mint+Cooler"},
-            {n: "Watermelon Cooler", p: 110, img: "https://placehold.co/400x300/16a085/ffffff?text=Watermelon+Cooler"},
-            {n: "Cranberry Fizz", p: 140, img: "https://placehold.co/400x300/16a085/ffffff?text=Cranberry+Fizz"},
-            {n: "Mint Lemonade", p: 100, img: "https://placehold.co/400x300/16a085/ffffff?text=Mint+Lemonade"},
-            {n: "Fruit Punch", p: 150, img: "https://placehold.co/400x300/16a085/ffffff?text=Fruit+Punch"},
-            {n: "Orange Sunset", p: 120, img: "https://placehold.co/400x300/16a085/ffffff?text=Orange+Sunset"}
-        ],
-        "Soups": [
-            {n: "Tomato Soup", p: 80, img: "https://placehold.co/400x300/c0392b/ffffff?text=Tomato+Soup"},
-            {n: "Sweet Corn Soup", p: 80, img: "https://placehold.co/400x300/c0392b/ffffff?text=Sweet+Corn+Soup"},
-            {n: "Hot & Sour Soup", p: 90, img: "https://placehold.co/400x300/c0392b/ffffff?text=Hot+%26+Sour+Soup"},
-            {n: "Manchow Soup", p: 90, img: "https://placehold.co/400x300/c0392b/ffffff?text=Manchow+Soup"},
-            {n: "Veg Clear Soup", p: 70, img: "https://placehold.co/400x300/c0392b/ffffff?text=Veg+Clear+Soup"},
-            {n: "Chicken Clear Soup", p: 100, img: "https://placehold.co/400x300/c0392b/ffffff?text=Chicken+Clear+Soup"},
-            {n: "Chicken Manchow Soup", p: 110, img: "https://placehold.co/400x300/c0392b/ffffff?text=Chicken+Manchow+Soup"},
-            {n: "Mushroom Soup", p: 100, img: "https://placehold.co/400x300/c0392b/ffffff?text=Mushroom+Soup"},
-            {n: "Lemon Coriander Soup", p: 90, img: "https://placehold.co/400x300/c0392b/ffffff?text=Lemon+Coriander+Soup"},
-            {n: "Cream of Tomato Soup", p: 90, img: "https://placehold.co/400x300/c0392b/ffffff?text=Cream+of+Tomato+Soup"}
-        ],
-        "Ice Cream": [
-            {n: "Vanilla Ice Cream", p: 50, img: "https://placehold.co/400x300/e84393/ffffff?text=Vanilla+Ice+Cream"},
-            {n: "Chocolate Ice Cream", p: 60, img: "https://placehold.co/400x300/e84393/ffffff?text=Chocolate+Ice+Cream"},
-            {n: "Strawberry Ice Cream", p: 60, img: "https://placehold.co/400x300/e84393/ffffff?text=Strawberry+Ice+Cream"},
-            {n: "Butterscotch Ice Cream", p: 70, img: "https://placehold.co/400x300/e84393/ffffff?text=Butterscotch+Ice+Cream"},
-            {n: "Mango Ice Cream", p: 60, img: "https://placehold.co/400x300/e84393/ffffff?text=Mango+Ice+Cream"},
-            {n: "Black Currant Ice Cream", p: 70, img: "https://placehold.co/400x300/e84393/ffffff?text=Black+Currant+Ice+Cream"},
-            {n: "Chocolate Chip Ice Cream", p: 80, img: "https://placehold.co/400x300/e84393/ffffff?text=Chocolate+Chip+Ice+Cream"},
-            {n: "Kulfi", p: 50, img: "https://placehold.co/400x300/e84393/ffffff?text=Kulfi"},
-            {n: "Matka Kulfi", p: 70, img: "https://placehold.co/400x300/e84393/ffffff?text=Matka+Kulfi"},
-            {n: "Ice Cream Sundae", p: 120, img: "https://placehold.co/400x300/e84393/ffffff?text=Ice+Cream+Sundae"}
-        ],
-        "Desserts": [
-            {n: "Gulab Jamun", p: 50, img: "https://placehold.co/400x300/d35400/ffffff?text=Gulab+Jamun"},
-            {n: "Rasgulla", p: 50, img: "https://placehold.co/400x300/d35400/ffffff?text=Rasgulla"},
-            {n: "Rasmalai", p: 70, img: "https://placehold.co/400x300/d35400/ffffff?text=Rasmalai"},
-            {n: "Kaju Katli", p: 90, img: "https://placehold.co/400x300/d35400/ffffff?text=Kaju+Katli"},
-            {n: "Gajar Ka Halwa", p: 80, img: "https://placehold.co/400x300/d35400/ffffff?text=Gajar+Ka+Halwa"},
-            {n: "Moong Dal Halwa", p: 90, img: "https://placehold.co/400x300/d35400/ffffff?text=Moong+Dal+Halwa"},
-            {n: "Chocolate Brownie", p: 120, img: "https://placehold.co/400x300/d35400/ffffff?text=Chocolate+Brownie"},
-            {n: "Brownie with Ice Cream", p: 150, img: "https://placehold.co/400x300/d35400/ffffff?text=Brownie+with+Ice+Cream"},
-            {n: "Cheesecake", p: 160, img: "https://placehold.co/400x300/d35400/ffffff?text=Cheesecake"},
-            {n: "Tiramisu", p: 180, img: "https://placehold.co/400x300/d35400/ffffff?text=Tiramisu"}
-        ]
-    };
+    let menuData = {};
 
-    // Feature 1 Initializer: Set every item as available by default initially
-    Object.keys(menuData).forEach(cat => {
-        menuData[cat].forEach(item => {
-            if(typeof item.available === 'undefined') item.available = true;
-        });
-    });
+    async function fetchMenu() {
+        try {
+            const response = await fetch('/api/menu');
+            if (response.ok) {
+                menuData = await response.json();
+                renderTabs();
+            } else {
+                console.error("Failed to fetch menu");
+            }
+        } catch (error) {
+            console.error("Error fetching menu:", error);
+        }
+    }
 
     let cart = [];
     let currentCategory = "Combos & Offers 🎁";
@@ -450,7 +262,7 @@
         }
     }
 
-    function editItemData(itemName) {
+    async function editItemData(itemName) {
         let foundItem;
         Object.keys(menuData).forEach(cat => {
             let it = menuData[cat].find(i => i.n === itemName);
@@ -464,6 +276,17 @@
             let isAvail = confirm(`Is ${foundItem.n} IN STOCK right now?\n\nPress OK for IN STOCK.\nPress Cancel for OUT OF STOCK.`);
             foundItem.available = isAvail;
             
+            try {
+                await fetch('/api/menu/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ n: foundItem.n, p: foundItem.p, available: foundItem.available })
+                });
+            } catch (e) {
+                console.error("Error updating item", e);
+                alert("Failed to update item on server");
+            }
+
             // Remove from cart if it was marked out of stock
             if(!isAvail) {
                 cart = cart.filter(i => i.name !== foundItem.n);
@@ -474,10 +297,19 @@
     }
 
     // Dashboard Feature
-    function openTrackingDashboard() {
+    async function openTrackingDashboard() {
         const list = document.getElementById('tracking-list');
         list.innerHTML = "";
         
+        try {
+            let res = await fetch('/api/orders');
+            if(res.ok) {
+                myOrderHistory = await res.json();
+            }
+        } catch(e) {
+            console.error('Error fetching orders:', e);
+        }
+
         if(myOrderHistory.length === 0) {
             list.innerHTML = "<p style='text-align:center; padding: 20px;'>You haven't placed any orders yet.</p>";
         } else {
@@ -638,7 +470,7 @@
         document.getElementById('qrCodeBox').style.display = payMode === 'UPI' ? 'block' : 'none';
     }
 
-    function confirmOrder() {
+    async function confirmOrder() {
         const orderId = Math.floor(Math.random() * 900000) + 100000;
         document.getElementById('genOrderId').innerText = orderId;
         
@@ -663,8 +495,16 @@
             status: "Order Placed - Preparing",
             time: new Date().toLocaleString()
         };
-        myOrderHistory.unshift(newOrder); // Add to top of list
-        localStorage.setItem('cafe_orders', JSON.stringify(myOrderHistory));
+
+        try {
+            await fetch('/api/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(newOrder)
+            });
+        } catch(e) {
+            console.error('Error submitting order', e);
+        }
 
         // Simulate SMS notification
         document.getElementById('smsConfirmText').innerText = `A confirmation SMS receipt has been auto-sent to +91-${custPhone.slice(-10)}`;
@@ -692,7 +532,7 @@
         }, 2000);
     }
 
-    renderTabs();
+    fetchMenu();
 </script>
 
 </body>
